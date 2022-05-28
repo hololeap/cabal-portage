@@ -1,0 +1,37 @@
+cradle:
+  cabal:
+    - path: "./cabal"
+      component: "cabal-portage:lib:cabal-portage-external-libs-Cabal"
+
+    - path: "./cabal/Cabal/src"
+      component: "cabal-portage:lib:cabal-portage-external-libs-Cabal"
+
+    - path: "./cabal/cabal-install-solver/src"
+      component: "cabal-portage:lib:cabal-portage-external-libs-cabal-install-solver"
+
+    - path: "./cabal/cabal-install-solver/src-assertion"
+      component: "cabal-portage:lib:cabal-portage-external-libs-cabal-install-solver"
+
+    - path: "./src"
+      component: "cabal-portage:lib:cabal-portage-internal"
+
+    - path: "./app/Main.hs"
+      component: "cabal-portage:exe:cabal-portage"
+
+    - path: "./test"
+      component: "cabal-portage:test:cabal-portage-test"
+
+    - path: "./parsable/src"
+      component: "lib:parsable"
+
+    - path: "./parsable/test"
+      component: "parsable:test:parsable-test"
+
+    - path: "./portage-hs/src"
+      component: "lib:portage-hs"
+
+    - path: "./portage-hs/test"
+      component: "portage-hs:test:portage-hs-test"
+
+    - path: "./semigroupoids-slim/src"
+      component: "lib:semigroupoids-slim"

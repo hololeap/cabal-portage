@@ -1,0 +1,1 @@
+packages: . ./parsable ./portage-hs ./semigroupoids-slim
