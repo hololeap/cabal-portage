@@ -1,1 +1,1 @@
-packages: . ./parsable ./portage-hs ./semigroupoids-slim
+packages: ./semigroupoids-slim ./parsable ./portage-hs ./cabal-portage

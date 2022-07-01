@@ -51,9 +51,13 @@ library
 
     build-depends:
         , base >=4.13 && <5
-        , parsec >=3.1.14.0
-        , semigroupoids-slim
+        , bifunctors
+        , mtl >=2.2.2
+        , megaparsec
+        , parser-combinators
+        , transformers >=0.5.6.2
         , text >=1.2.4.0
+        , semigroupoids >=5.3.6
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -71,21 +75,21 @@ library
         , TypeApplications
         , TypeFamilies
 
-test-suite parsable-test
-    import: all
-    default-language: Haskell2010
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          Main.hs
-    build-depends:
-        , base
-        , parsable
-        , QuickCheck
-        , quickcheck-classes
-        , semigroupoids-slim
-        , semigroupoids >=5.3.6
-
-    other-extensions:
-        , DerivingStrategies
-        , InstanceSigs
-        , TypeApplications
+-- test-suite parsable-test
+--     import: all
+--     default-language: Haskell2010
+--     type:             exitcode-stdio-1.0
+--     hs-source-dirs:   test
+--     main-is:          Main.hs
+--     build-depends:
+--         , base
+--         , parsable
+--         , quickcheck-classes
+--         , tasty
+--         , tasty-quickcheck
+--         , semigroupoids
+--
+--     other-extensions:
+--         , DerivingStrategies
+--         , InstanceSigs
+--         , TypeApplications

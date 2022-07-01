@@ -1,24 +1,24 @@
 cradle:
   cabal:
-    - path: "./cabal"
+    - path: "./cabal-portage/cabal"
       component: "cabal-portage:lib:cabal-portage-external-libs-Cabal"
 
-    - path: "./cabal/Cabal/src"
+    - path: "./cabal-portage/cabal/Cabal/src"
       component: "cabal-portage:lib:cabal-portage-external-libs-Cabal"
 
-    - path: "./cabal/cabal-install-solver/src"
+    - path: "./cabal-portage/cabal/cabal-install-solver/src"
       component: "cabal-portage:lib:cabal-portage-external-libs-cabal-install-solver"
 
-    - path: "./cabal/cabal-install-solver/src-assertion"
+    - path: "./cabal-portage/cabal/cabal-install-solver/src-assertion"
       component: "cabal-portage:lib:cabal-portage-external-libs-cabal-install-solver"
 
-    - path: "./src"
+    - path: "./cabal-portage/src"
       component: "cabal-portage:lib:cabal-portage-internal"
 
-    - path: "./app/Main.hs"
+    - path: "./cabal-portage/app/Main.hs"
       component: "cabal-portage:exe:cabal-portage"
 
-    - path: "./test"
+    - path: "./cabal-portage/test"
       component: "cabal-portage:test:cabal-portage-test"
 
     - path: "./parsable/src"
