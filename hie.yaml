@@ -24,14 +24,11 @@ cradle:
     - path: "./parsable/src"
       component: "lib:parsable"
 
-    - path: "./parsable/test"
-      component: "parsable:test:parsable-test"
+    - path: "./parsable-test/src"
+      component: "lib:parsable-test"
 
     - path: "./portage-hs/src"
       component: "lib:portage-hs"
 
     - path: "./portage-hs/test"
       component: "portage-hs:test:portage-hs-test"
-
-    - path: "./semigroupoids-slim/src"
-      component: "lib:semigroupoids-slim"

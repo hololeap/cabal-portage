@@ -24,15 +24,27 @@ source-repository head
     branch:         main
 
 flag pedantic
-    description:    Turn on -Werror
-    default:        False
-    manual:         True
+    description: Enable -Werror
+    default:     False
+    manual:      True
 
 common all
-    ghc-options:         -Wall
-                         -foptimal-applicative-do
+    ghc-options:        -Weverything
+                        -Wno-missing-exported-signatures
+                        -Wno-missing-import-lists
+                        -Wno-missed-specialisations
+                        -Wno-all-missed-specialisations
+                        -Wno-unsafe
+                        -Wno-safe
+                        -Wno-missing-safe-haskell-mode
+                        -Wno-missing-local-signatures
+                        -Wno-implicit-prelude
+                        -Wno-prepositive-qualified-module
+                        -Wno-missing-deriving-strategies
+                        -Wno-deriving-typeable
+                        -foptimal-applicative-do
     if flag(pedantic)
-        ghc-options:     -Werror
+        ghc-options:    -Werror
 
 library
     import: all
@@ -51,13 +63,13 @@ library
 
     build-depends:
         , base >=4.13 && <5
-        , bifunctors
-        , mtl >=2.2.2
+--        , bifunctors
+--        , mtl >=2.2.2
         , megaparsec
-        , parser-combinators
+--        , parser-combinators
         , transformers >=0.5.6.2
         , text >=1.2.4.0
-        , semigroupoids >=5.3.6
+--        , semigroupoids >=5.3.6
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -74,22 +86,3 @@ library
         , ScopedTypeVariables
         , TypeApplications
         , TypeFamilies
-
--- test-suite parsable-test
---     import: all
---     default-language: Haskell2010
---     type:             exitcode-stdio-1.0
---     hs-source-dirs:   test
---     main-is:          Main.hs
---     build-depends:
---         , base
---         , parsable
---         , quickcheck-classes
---         , tasty
---         , tasty-quickcheck
---         , semigroupoids
---
---     other-extensions:
---         , DerivingStrategies
---         , InstanceSigs
---         , TypeApplications

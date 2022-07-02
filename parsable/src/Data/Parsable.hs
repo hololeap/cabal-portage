@@ -76,6 +76,7 @@ module Data.Parsable
     , module Control.Monad
     , module Control.Monad.Trans.Class
     , module Data.Char
+    , module Data.Functor.Identity
     , module Data.String
     , module Text.Megaparsec
     , module Text.Megaparsec.Char
@@ -147,7 +148,7 @@ class MonadParsec e s m => Parsable a (m :: Type -> Type) s e where
 newtype NaturalParsable a = NaturalParsable
     { unwrapNaturalParsable :: a }
 
-instance (MonadParsec e s m, MonadFail m, Token s ~ Char, Read a, Integral a, Typeable a)
+instance (MonadParsec e s m, MonadFail m, Token s ~ Char, Read a, Typeable a)
     => Parsable (NaturalParsable a) m s e where
     parserName = "natural number"
     parser = checkCoverage $ (<?> "natural number") $ do
@@ -189,8 +190,8 @@ satisfyAny fs = satisfy $ \c -> or [f c | f <- fs]
 -- | One or more characters that satisfy any of the given predicates
 someAllowed :: (MonadParsec e s m, Token s ~ Char)
     => [Char -> Bool]
-    -> ParseResult e s m String
-someAllowed allowed = wordsWithSep allowed allowed []
+    -> ParseResult e s m [String]
+someAllowed allowed = wordsWithSep allowed allowed (const False)
 
 -- | Best effort parsing of "words" starting with certain allowed characters,
 --   then multiple of characters allowed after the start of a word.
@@ -216,8 +217,8 @@ someAllowed allowed = wordsWithSep allowed allowed []
 wordsWithSep :: (MonadParsec e s m, Token s ~ Char)
     => [Char -> Bool]    -- ^ Characters allowed at the start of a word
     -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
-    -> [Char -> Bool]    -- ^ Characters that separate words
-    -> ParseResult e s m String
+    -> (Char -> Bool)    -- ^ Characters that separate words
+    -> ParseResult e s m [String]
 wordsWithSep = wordsWithSepG Nothing
 
 -- | The same as 'wordsWithSep', but this takes a parser which will be run in
@@ -227,8 +228,8 @@ wordsWithSep' :: (MonadParsec e s m, Token s ~ Char)
     => m String -- ^ Beginning of parser, skips normal beginning
     -> [Char -> Bool]    -- ^ Characters allowed at the start of a word
     -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
-    -> [Char -> Bool]    -- ^ Characters that separate words
-    -> ParseResult e s m String
+    -> (Char -> Bool)    -- ^ Character that separates words
+    -> ParseResult e s m [String]
 wordsWithSep' = wordsWithSepG . Just
 
 -- | General version of 'wordsWithSep'. Not exported.
@@ -237,8 +238,8 @@ wordsWithSepG :: (MonadParsec e s m, Token s ~ Char)
     => Maybe (m String)
     -> [Char -> Bool]    -- ^ Characters allowed at the start of a word
     -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
-    -> [Char -> Bool]    -- ^ Characters that separate words
-    -> ParseResult e s m String
+    -> (Char -> Bool)    -- ^ Character that separates words
+    -> ParseResult e s m [String]
 wordsWithSepG maybeBeg wordStart wordRest wordSep = do
     let beg = flip fromMaybe maybeBeg $ do
                     w <- some $ satisfyAny wordStart
@@ -247,10 +248,10 @@ wordsWithSepG maybeBeg wordStart wordRest wordSep = do
     choice
         [ try $ do
             b    <- lift beg
-            sep  <- satisfyAny wordSep
+            _    <- satisfy wordSep
             next <- wordsWithSepG Nothing wordStart wordRest wordSep
-            pure $ b ++ [sep] ++ next
-        , checkCoverage beg
+            pure $ b : next
+        , checkCoverage $ (:[]) <$> beg
         ]
 
 -- | Run the specified parser, then write 'CompleteParse' if we are at
