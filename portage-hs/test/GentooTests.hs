@@ -6,7 +6,6 @@
 module GentooTests (gentooTests) where
 
 import Control.Applicative
--- import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.List
 import System.Directory
@@ -14,17 +13,19 @@ import System.FilePath.Posix
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Distribution.Portage.Types
+import Distribution.Portage.Types.Internal
 import Data.Parsable
 import Test.Parsable
 
+-- | Check all package atoms from @/var/db/pkg@ and make sure
+--   they are parsed successfully and pass the "roundtrip" test.
 gentooTests :: IO TestTree
 gentooTests = do
     pkgStrings <- pkgTree
     pure $ testGroup "parse /var/db/pkg tree" $ go <$> pkgStrings
   where
     go :: String -> TestTree
-    go pkgString = testCase pkgString $ do
+    go pkgString = testCase (show pkgString) $ do
         let pkgE = runParsable @Package @Void "" pkgString
         case pkgE of
             Left e ->

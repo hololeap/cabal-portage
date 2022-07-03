@@ -3,35 +3,312 @@ name:               cabal-portage
 version:            0.1.0.0
 synopsis:           Common interface between Cabal and Portage
 
--- A longer description of the package.
 -- description:
 homepage:           https://github.com/hololeap/cabal-portage
-
--- A URL where users can report bugs.
--- bug-reports:
+bug-reports:        https://github.com/hololeap/cabal-portage/issues
 license:            GPL-3.0-or-later
 license-file:       LICENSE
 author:             hololeap
 maintainer:         hololeap@users.noreply.github.com
 
--- A copyright notice.
--- copyright:
+copyright:          Copyright 2022 Gentoo Authors
 category:           System
 extra-source-files: CHANGELOG.md
 
+flag gentoo-tests
+    description: Run tests that require a live Gentoo system
+    default:     False
+    manual:      True
+
+flag pedantic
+    description:    Turn on -Werror
+    default:        False
+    manual:         True
+
 common all
-    ghc-options:         -Weverything
-                         -Wno-missing-exported-signatures
-                         -Wno-missing-import-lists
-                         -Wno-missed-specialisations
-                         -Wno-all-missed-specialisations
-                         -Wno-unsafe
-                         -Wno-safe
-                         -Wno-missing-safe-haskell-mode
-                         -Wno-missing-local-signatures
-                         -Wno-implicit-prelude
-                         -Wno-prepositive-qualified-module
+    ghc-options:         -Wall
                          -foptimal-applicative-do
+    if flag(pedantic)
+        ghc-options:     -Werror
+
+library cabal-portage-external-libs-Cabal
+    Default-Language: Haskell2010
+    Hs-Source-Dirs: cabal, cabal/Cabal/src
+
+    Build-Depends:
+        , array         >= 0.4.0.1
+        , base          >= 4.6 && <5
+        , bytestring
+        , containers
+        , deepseq       >= 1.3.0.1
+        , directory     >= 1.2
+        , filepath
+        , pretty        >= 1.1.1
+        , process       >= 1.1.0.2
+        , time          >= 1.4.0.1
+        , binary        >= 0.7
+        , unix          >= 2.6
+        , transformers
+        , mtl           >= 2.1
+        , text          >= 1.2.3.0
+        , parsec        >= 3.1.13.0
+
+    other-extensions:
+        BangPatterns
+        CPP
+        DefaultSignatures
+        DeriveDataTypeable
+        DeriveFoldable
+        DeriveFunctor
+        DeriveGeneric
+        DeriveTraversable
+        ExistentialQuantification
+        FlexibleContexts
+        FlexibleInstances
+        GeneralizedNewtypeDeriving
+        ImplicitParams
+        KindSignatures
+        NondecreasingIndentation
+        OverloadedStrings
+        PatternSynonyms
+        RankNTypes
+        RecordWildCards
+        ScopedTypeVariables
+        StandaloneDeriving
+        Trustworthy
+        TypeFamilies
+        TypeOperators
+        TypeSynonymInstances
+        UndecidableInstances
+
+    exposed-modules:
+        Distribution.Compat.CharParsing
+        Distribution.Compat.Environment
+        Distribution.Compat.Graph
+        Distribution.Compat.NonEmptySet
+        Distribution.Compat.Prelude.Internal
+        Distribution.Compiler
+        Distribution.InstalledPackageInfo
+        Distribution.Package
+        Distribution.PackageDescription
+        Distribution.PackageDescription.Configuration
+        Distribution.Parsec
+        Distribution.Pretty
+        Distribution.Simple.BuildToolDepends
+        Distribution.Simple.PackageIndex
+        Distribution.Simple.Program
+        Distribution.Simple.Setup
+        Distribution.Simple.Utils
+        Distribution.System
+        Distribution.Types.ComponentName
+        Distribution.Types.ComponentRequestedSpec
+        Distribution.Types.CondTree
+        Distribution.Types.ExeDependency
+        Distribution.Types.Flag
+        Distribution.Types.InstalledPackageInfo
+        Distribution.Types.LibraryName
+        Distribution.Types.MungedPackageId
+        Distribution.Types.MungedPackageName
+        Distribution.Types.PackageId
+        Distribution.Types.PackageVersionConstraint
+        Distribution.Types.PkgconfigDependency
+        Distribution.Types.PkgconfigVersion
+        Distribution.Types.PkgconfigVersionRange
+        Distribution.Types.UnitId
+        Distribution.Types.UnqualComponentName
+        Distribution.Types.VersionRange
+        Distribution.Utils.Structured
+        Distribution.Verbosity
+        Distribution.Version
+        Language.Haskell.Extension
+
+    other-modules:
+        Distribution.Backpack
+--         Distribution.Backpack.ComponentsGraph
+--         Distribution.Backpack.Configure
+--         Distribution.Backpack.ConfiguredComponent
+--         Distribution.Backpack.DescribeUnitId
+--         Distribution.Backpack.FullUnitId
+--         Distribution.Backpack.Id
+--         Distribution.Backpack.LinkedComponent
+--         Distribution.Backpack.MixLink
+--         Distribution.Backpack.ModSubst
+--         Distribution.Backpack.ModuleScope
+--         Distribution.Backpack.ModuleShape
+--         Distribution.Backpack.PreExistingComponent
+--         Distribution.Backpack.PreModuleShape
+--         Distribution.Backpack.ReadyComponent
+--         Distribution.Backpack.UnifyM
+        Distribution.CabalSpecVersion
+        Distribution.Compat.Async
+        Distribution.Compat.Binary
+        Distribution.Compat.CopyFile
+--         Distribution.Compat.CreatePipe
+        Distribution.Compat.DList
+--         Distribution.Compat.Directory
+        Distribution.Compat.Exception
+        Distribution.Compat.FilePath
+        Distribution.Compat.Internal.TempFile
+        Distribution.Compat.Lens
+        Distribution.Compat.MonadFail
+        Distribution.Compat.Newtype
+        Distribution.Compat.Parsing
+        Distribution.Compat.Prelude
+        Distribution.Compat.Process
+        Distribution.Compat.Semigroup
+        Distribution.Compat.Stack
+--         Distribution.Compat.Time
+        Distribution.Compat.Typeable
+        Distribution.FieldGrammar
+        Distribution.FieldGrammar.Class
+        Distribution.FieldGrammar.FieldDescrs
+        Distribution.FieldGrammar.Newtypes
+        Distribution.FieldGrammar.Parsec
+        Distribution.FieldGrammar.Pretty
+        Distribution.Fields
+--         Distribution.Fields.ConfVar
+        Distribution.Fields.Field
+        Distribution.Fields.Lexer
+        Distribution.Fields.LexerMonad
+        Distribution.Fields.ParseResult
+        Distribution.Fields.Parser
+        Distribution.Fields.Pretty
+        Distribution.GetOpt
+--         Distribution.Lex
+        Distribution.License
+        Distribution.ModuleName
+--         Distribution.PackageDescription.Check
+--         Distribution.PackageDescription.FieldGrammar
+--         Distribution.PackageDescription.Parsec
+--         Distribution.PackageDescription.PrettyPrint
+--         Distribution.PackageDescription.Quirks
+        Distribution.PackageDescription.Utils
+        Distribution.Parsec.Error
+        Distribution.Parsec.FieldLineStream
+        Distribution.Parsec.Position
+        Distribution.Parsec.Warning
+        Distribution.ReadE
+        Distribution.SPDX
+        Distribution.SPDX.License
+        Distribution.SPDX.LicenseExceptionId
+        Distribution.SPDX.LicenseExpression
+        Distribution.SPDX.LicenseId
+        Distribution.SPDX.LicenseListVersion
+        Distribution.SPDX.LicenseReference
+--         Distribution.Simple.Build.PathsModule
+--         Distribution.Simple.BuildPaths
+--         Distribution.Simple.BuildTarget
+--         Distribution.Simple.CCompiler
+        Distribution.Simple.Command
+        Distribution.Simple.Compiler
+--         Distribution.Simple.Configure
+        Distribution.Simple.Flag
+--         Distribution.Simple.GHC
+--         Distribution.Simple.GHC.EnvironmentParser
+        Distribution.Simple.GHC.ImplInfo
+--         Distribution.Simple.GHC.Internal
+--         Distribution.Simple.GHCJS
+--         Distribution.Simple.Glob
+--         Distribution.Simple.HaskellSuite
+--         Distribution.Simple.Hpc
+        Distribution.Simple.InstallDirs
+        Distribution.Simple.InstallDirs.Internal
+--         Distribution.Simple.LocalBuildInfo
+--         Distribution.Simple.PreProcess
+--         Distribution.Simple.PreProcess.Unlit
+--         Distribution.Simple.Program.Ar
+        Distribution.Simple.Program.Builtin
+        Distribution.Simple.Program.Db
+        Distribution.Simple.Program.Find
+        Distribution.Simple.Program.GHC
+--         Distribution.Simple.Program.HcPkg
+--         Distribution.Simple.Program.Hpc
+        Distribution.Simple.Program.Internal
+--         Distribution.Simple.Program.Ld
+--         Distribution.Simple.Program.ResponseFile
+        Distribution.Simple.Program.Run
+--         Distribution.Simple.Program.Strip
+        Distribution.Simple.Program.Types
+--         Distribution.Simple.Test.LibV09
+--         Distribution.Simple.Test.Log
+--         Distribution.Simple.UHC
+--         Distribution.Text
+--         Distribution.TestSuite
+        Distribution.Types.AbiDependency
+        Distribution.Types.AbiHash
+--         Distribution.Types.AnnotatedId
+        Distribution.Types.Benchmark
+        Distribution.Types.Benchmark.Lens
+        Distribution.Types.BenchmarkInterface
+        Distribution.Types.BenchmarkType
+        Distribution.Types.BuildInfo
+        Distribution.Types.BuildInfo.Lens
+        Distribution.Types.BuildType
+        Distribution.Types.Component
+        Distribution.Types.ComponentId
+--         Distribution.Types.ComponentInclude
+--         Distribution.Types.ComponentLocalBuildInfo
+        Distribution.Types.Condition
+        Distribution.Types.ConfVar
+        Distribution.Types.Dependency
+        Distribution.Types.DependencyMap
+        Distribution.Types.Executable
+        Distribution.Types.Executable.Lens
+        Distribution.Types.ExecutableScope
+        Distribution.Types.ExposedModule
+        Distribution.Types.ForeignLib
+        Distribution.Types.ForeignLib.Lens
+        Distribution.Types.ForeignLibOption
+        Distribution.Types.ForeignLibType
+        Distribution.Types.GenericPackageDescription
+        Distribution.Types.GenericPackageDescription.Lens
+        Distribution.Types.GivenComponent
+        Distribution.Types.HookedBuildInfo
+        Distribution.Types.IncludeRenaming
+        Distribution.Types.InstalledPackageInfo.FieldGrammar
+        Distribution.Types.InstalledPackageInfo.Lens
+        Distribution.Types.LegacyExeDependency
+--         Distribution.Types.Lens
+        Distribution.Types.Library
+        Distribution.Types.Library.Lens
+        Distribution.Types.LibraryVisibility
+--         Distribution.Types.LocalBuildInfo
+        Distribution.Types.Mixin
+        Distribution.Types.Module
+        Distribution.Types.ModuleReexport
+        Distribution.Types.ModuleRenaming
+        Distribution.Types.PackageDescription
+        Distribution.Types.PackageDescription.Lens
+        Distribution.Types.PackageId.Lens
+        Distribution.Types.PackageName
+--         Distribution.Types.PackageName.Magic
+        Distribution.Types.PkgconfigName
+        Distribution.Types.SetupBuildInfo
+        Distribution.Types.SetupBuildInfo.Lens
+        Distribution.Types.SourceRepo
+--         Distribution.Types.SourceRepo.Lens
+--         Distribution.Types.TargetInfo
+        Distribution.Types.TestSuite
+        Distribution.Types.TestSuite.Lens
+        Distribution.Types.TestSuiteInterface
+        Distribution.Types.TestType
+        Distribution.Types.Version
+        Distribution.Types.VersionInterval
+        Distribution.Types.VersionRange.Internal
+        Distribution.Utils.Base62
+        Distribution.Utils.Generic
+        Distribution.Utils.IOData
+--         Distribution.Utils.LogProgress
+        Distribution.Utils.MD5
+--         Distribution.Utils.MapAccum
+        Distribution.Utils.NubList
+        Distribution.Utils.Path
+--         Distribution.Utils.Progress
+        Distribution.Utils.ShortText
+        Distribution.Utils.String
+--         Distribution.Utils.UnionFind
+        Distribution.Verbosity.Internal
+        Paths_Cabal
 
 library cabal-portage-external-libs-cabal-install-solver
     default-language: Haskell2010
@@ -99,31 +376,38 @@ library cabal-portage-external-libs-cabal-install-solver
         Distribution.Solver.Types.Variable
 
     build-depends:
-        , array         >=0.4
+        , array
         , base
-        , binary        >=0.7.3
+--         , binary        >=0.7.3
         , bytestring    >=0.10.6.0
-        , Cabal
+        , cabal-portage-external-libs-Cabal
         , containers    >=0.5.6.2
         , filepath
-        , mtl           >=2.0
-        , pretty        ^>=1.1
+        , mtl
+        , pretty
         , transformers  >=0.4.2.0
 
-library
+library cabal-portage-internal
     import: all
-    exposed-modules:  Distribution.Cabal.Portage
+    exposed-modules:
+        , Distribution.Portage.Cabal
 
-    -- Modules included in this library but not exported.
     -- other-modules:
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base >=4.13 && <5
                     , Cabal >=3.0.1.0
+                    , containers >=0.6.2.1
                     , directory >=1.3.6.0
-                    , filepath  >=1.4.0.0
+                    , filepath >=1.4.0.0
+                    , mtl >=2.2.2
                     , parsec >=3.1.14.0
+                    , process >=1.6.9.0
+                    , text >=1.2.4.0
+                    , transformers >=0.5.6.2
+                    , parsable
+                    , portage-hs
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -137,15 +421,28 @@ executable cabal-portage
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        base,
-        cabal-portage
+        , base
+        , cabal-portage-internal
 
     hs-source-dirs:   app
     default-language: Haskell2010
 
--- test-suite cabal-portage-test
---     default-language: Haskell2010
---     type:             exitcode-stdio-1.0
---     hs-source-dirs:   test
---     main-is:          MyLibTest.hs
---     build-depends:    base
+test-suite cabal-portage-test
+    import: all
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    other-modules:
+        , Test.Parse
+    build-depends:
+        , base
+        , cabal-portage-internal
+        , mtl
+        , parsec
+        , pretty-simple >=4
+        , tasty >=1.4
+        , tasty-hunit >=0.10
+
+    if flag(gentoo-tests)
+        cpp-options: -DGENTOO_TESTS

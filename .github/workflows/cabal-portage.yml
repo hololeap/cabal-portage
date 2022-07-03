@@ -8,12 +8,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cabal: ["3.0.1.0", "3.2.0.0", "3.2.1.0", "3.4.1.0", "3.6"]
-        ghc: ["8.8", "8.10", "9.0", "9.2"]
+        cabal: ["3.4.1.0"]
+        ghc: ["8.10", "9.0"]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -22,7 +21,6 @@ jobs:
       with:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal }}
-
     - name: Cache
       uses: actions/cache@v1
       env:
@@ -34,12 +32,12 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
-
     - name: Install dependencies
       run: |
         cabal update
-        cabal build --only-dependencies --enable-tests --enable-benchmarks
+        cabal configure --enable-tests --flag=pedantic
+        cabal build --only-dependencies parsable parsable-test portage-hs
     - name: Build
-      run: cabal v2-build --flag=pedantic --enable-tests all
+      run: cabal build parsable parsable-test portage-hs
     - name: Run all enabled tests
-      run: cabal test --test-option=--color --test-show-details=streaming
+      run: cabal test --test-option=--color=always --test-show-details=streaming portage-hs:test:portage-hs-test

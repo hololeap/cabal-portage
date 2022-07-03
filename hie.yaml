@@ -27,8 +27,11 @@ cradle:
     - path: "./parsable-test/src"
       component: "lib:parsable-test"
 
-    - path: "./portage-hs/src"
+    - path: "./portage-hs/src-exposed"
       component: "lib:portage-hs"
+
+    - path: "./portage-hs/src"
+      component: "portage-hs:lib:portage-hs-internal"
 
     - path: "./portage-hs/test"
       component: "portage-hs:test:portage-hs-test"

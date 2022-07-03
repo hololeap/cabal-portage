@@ -3,17 +3,18 @@ name:               portage-hs
 version:            0.1.0.0
 synopsis:           Data structures for interacting with the Portage package manager
 
+tested-with:        GHC == { 8.10.7, 9.0.2 }
+
 -- description:
 homepage:           https://github.com/hololeap/cabal-portage/tree/main/portage-hs
-bug-reports:        https://github.com/hololeap/portage-hs/issues
+bug-reports:        https://github.com/hololeap/cabal-portage/issues
 
 license:            BSD-2-Clause
 license-file:       LICENSE
 author:             hololeap
 maintainer:         hololeap@users.noreply.github.com
 
--- A copyright notice.
--- copyright:
+copyright:          Copyright (C) 2022 hololeap
 category:           System
 extra-source-files: CHANGELOG.md
 
@@ -44,10 +45,14 @@ common all
                         -Wno-implicit-prelude
                         -Wno-prepositive-qualified-module
                         -Wno-missing-deriving-strategies
-                        -Wno-deriving-typeable
                         -foptimal-applicative-do
     if flag(pedantic)
         ghc-options:    -Werror
+
+common fast
+    ghc-options:        -O2
+                        -threaded
+                        -with-rtsopts=-N
 
 library
     import: all
@@ -55,45 +60,50 @@ library
         , Distribution.Portage.Types
 
     -- other-modules:
-    -- other-extensions:
+    other-extensions:
+        , NoImplicitPrelude
+        , PackageImports
+
+    build-depends:
+          , portage-hs-internal
+    hs-source-dirs:   src-exposed
+    default-language: Haskell2010
+
+library portage-hs-internal
+    import: all
+    exposed-modules:
+        , Distribution.Portage.Types.Internal
 
     build-depends:
         , base >=4.13 && <5
---        , Cabal >=3.0.1.0
-        , containers >=0.6.2.1
---        , directory >=1.3.6.0
---        , filepath >=1.4.0.0
---        , mtl >=2.2.2
---        , parsec >=3.1.14.0
---        , process >=1.6.9.0
---        , text >=1.2.4.0
---        , transformers >=0.5.6.2
         , parsable
---        , semigroupoids >=5.3.6
     hs-source-dirs:   src
     default-language: Haskell2010
 
 test-suite portage-hs-test
-    import: all
+    import: all, fast
     default-language: Haskell2010
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Main.hs
-    other-modules:    GentooTests
+    other-modules:
+        , ValidityTests
+        , UnitTests
     build-depends:
         , base
-        , portage-hs
+        , portage-hs-internal
+        , parsable
         , parsable-test
         , QuickCheck
         , tasty
---        , tasty-quickcheck
+        , tasty-hunit
 
     if flag(gentoo-tests)
         CPP-Options:
-          -DGENTOO_TESTS
+            -DGENTOO_TESTS
         build-depends:
-            , parsable
             , directory >=1.3.6.0
             , filepath >=1.4.0.0
-            , tasty-hunit
             , transformers >=0.5.6.2
+        other-modules:
+            , GentooTests

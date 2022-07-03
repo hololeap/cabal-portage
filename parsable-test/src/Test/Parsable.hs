@@ -4,6 +4,7 @@ Module      : Test.Parsable
 Test functions for 'Parsable' and 'Printable'.
 -}
 
+{-# Language CPP #-}
 {-# Language FlexibleContexts #-}
 {-# Language ScopedTypeVariables #-}
 {-# Language TypeApplications #-}
@@ -13,6 +14,7 @@ module Test.Parsable
     , parsableProp
     , parsableRoundtrip
     , wordsWithSepGen
+    , wordGen
     , ParseErrorBundle(..)
     , module Control.Monad.STM
 --     , module Control.Concurrent.STM.TChan
@@ -52,9 +54,16 @@ parsableProp ::
     , Show a
     ) => TChan (ParseErrorBundle String Void) -> a -> Property
 parsableProp c x = whenFail (printErrors c) $ idempotentIOProperty $ do
+
+#if defined(VERBOSE_TESTS)
+    let (s,r) = parsableRoundtrip x
+    _ <- either (atomically . writeTChan c) (const (pure ())) r
+    pure $ label s $ r === Right (CompleteParse, x)
+#else
     let (_,r) = parsableRoundtrip x
     _ <- either (atomically . writeTChan c) (const (pure ())) r
     pure $ r === Right (CompleteParse, x)
+#endif
 
 parsableRoundtrip ::
     ( Parsable a (Parsec Void String) String Void
@@ -67,18 +76,22 @@ parsableRoundtrip x =
 wordsWithSepGen
     :: [Char -> Bool]
     -> [Char -> Bool]
-    -> [Char -> Bool]
+    -> (Char -> Bool)
     -> Gen String
 wordsWithSepGen wordStart wordRest wordSep = do
-    pieces <- listOf1 $ do
-        c  <- suchThat arbitrary $ anySat wordStart
-        cs <- listOf $ suchThat arbitrary $ anySat wordRest
-        pure $ c : cs
-    s <- suchThat arbitrary $ anySat wordSep
+    pieces <- listOf1 $ wordGen wordStart wordRest
+    s <- arbitrary `suchThat` wordSep
     pure $ L.intercalate [s] pieces
+
+wordGen :: [Char -> Bool] -> [Char -> Bool] -> Gen String
+wordGen wordStart wordRest = do
+    c  <-          arbitrary `suchThat` anySat wordStart
+    cs <- listOf $ arbitrary `suchThat` anySat wordRest
+    pure $ c : cs
   where
     anySat :: [Char -> Bool] -> Char -> Bool
-    anySat l x = or $ ($x) <$> l
+    anySat l x = or [f x | f <- l]
+
 
 printErrors :: TChan (ParseErrorBundle String Void) -> IO ()
 printErrors c = fix $ \loop -> do
