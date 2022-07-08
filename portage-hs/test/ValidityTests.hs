@@ -1,4 +1,6 @@
+{-# Language LambdaCase #-}
 {-# Language TypeApplications #-}
+{-# Language ViewPatterns #-}
 
 {-# Options_GHC -Wno-orphans #-}
 
@@ -55,11 +57,7 @@ instance Arbitrary Category where
             , isDigit
             , (== '_')
             ]
-        wordRest = wordStart ++
-            [ (== '+')
-            , (== '-')
-            , (== '.')
-            ]
+        wordRest = (== '+') : (== '-') : (== '.') : wordStart
 
 -- > 3.1.2 Package names
 -- > A package name may contain any of the characters [A-Za-z0-9+_-]. It must
@@ -72,7 +70,7 @@ instance Arbitrary PkgName where
     arbitrary = PkgName <$> pkgGen wordStart wordRest
       where
         wordStart = [isAsciiUpper, isAsciiLower, isDigit, (== '_')]
-        wordRest  = wordStart ++ [(== '+')]
+        wordRest  = (== '+') : (== '-') : wordStart
 
 -- > 3.1.3 Slot names
 -- > A slot name may contain any of the characters [A-Za-z0-9+_.-].
@@ -108,14 +106,15 @@ instance Arbitrary Slot where
 -- > It must not begin with a hyphen. In addition, every repository
 -- > name must also be a valid package name.
 instance Arbitrary Repository where
-    arbitrary = Repository <$> pkgGen letters letters
+    arbitrary = Repository <$> pkgGen wordStart wordRest
       where
-        letters =
+        wordStart =
             [ isAsciiUpper
             , isAsciiLower
             , isDigit
             , (== '_')
             ]
+        wordRest = (== '-') : wordStart
 
 
 -- TODO
@@ -212,16 +211,39 @@ nonEmptyDigitGen = nonEmptyGen $ arbitrary `suchThat` isDigit
 
 -- | PkgName and Repository share a similar generator
 pkgGen :: [Char -> Bool] -> [Char -> Bool] -> Gen String
-pkgGen wordStart wordRest = do
-    -- This generator can get out of hand if we don't limit the size
-    -- of the list
-    k <- choose (0,5)
-    ls <- vectorOf k $ oneof
+pkgGen
+    (removeHyphens -> wordStart)
+    (removeHyphens -> wordRest ) = do
+        ls <- oneof
+            [ do
+                s <- oneof startChoices
+                -- This generator can get out of hand if we don't limit the size
+                -- of the list
+                k <- choose (0,5)
+                rest <- vectorOf k $ oneof restChoices
+                pure $ s : rest
+            , pure []
+            ]
+        end <- nonVersion
+        pure $ L.intercalate "-" $ ls ++ [end]
+  where
+    nonVersion =
+        wordGen wordStart wordRest
+            `suchThat` (isLeft . runParsable @Version @Void "")
+
+    -- Don't start with @pure ""@ or it will end up creating a string that
+    -- starts with @'-'@ (an invalid Package/Repository string)
+    startChoices =
         [ nonVersion
         , toString . unwrapFauxVersion <$> arbitrary
         ]
-    end <- nonVersion
-    pure $ L.intercalate "-" $ ls ++ [end]
-  where
-    nonVersion = wordGen wordStart wordRest `suchThat`
-        (isLeft . runParsable @Version @Void "")
+
+    restChoices = pure "" : startChoices
+
+-- Sometimes hyphens are handled specially and should not be generated with
+-- 'wordGen'. This removes hyphens which would normally be generated when
+-- following specifcations.
+removeHyphens :: [Char -> Bool] -> [Char -> Bool]
+removeHyphens = map $ \f -> \case
+    '-' -> False
+    c   -> f c

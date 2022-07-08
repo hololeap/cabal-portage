@@ -38,6 +38,7 @@ module Distribution.Portage.Types.Internal
     , FauxVersionNum(..)
     ) where
 
+import Control.Applicative (Alternative)
 -- import Control.Monad.Trans.Writer.CPS
 import Data.Data (Data)
 import Data.Function (on)
@@ -82,7 +83,7 @@ newtype PkgName = PkgName
 instance forall m s e. (Ord e, Token s ~ Char, Stream s, IsString (Tokens s))
     => Parsable PkgName (ParsecT e s m) s e where
     parserName = "portage package name"
-    parser = PkgName <$> pkgParser wordStart wordRest wordSep
+    parser = PkgName <$> pkgParser wordStart wordRest
       where
         wordStart =
             [ isAsciiUpper
@@ -90,8 +91,7 @@ instance forall m s e. (Ord e, Token s ~ Char, Stream s, IsString (Tokens s))
             , isDigit
             , (== '_')
             ]
-        wordRest = (== '+') : wordStart
-        wordSep = '-'
+        wordRest = (== '+') : (== '-') : wordStart
 
 newtype VersionNum = VersionNum
     { unwrapVersionNum :: NonEmpty (NonEmpty Char) }
@@ -254,15 +254,16 @@ newtype Repository = Repository { unwrapRepository :: String }
 instance (Token s ~ Char, IsString (Tokens s), MonadParsec e s m, MonadFail m)
     => Parsable Repository m s e where
     parserName = "portage repository"
-    parser = Repository <$> pkgParser letters letters wordSep
+    parser = Repository <$> pkgParser wordStart wordRest
       where
-        letters =
+        wordStart =
             [ isAsciiUpper
             , isAsciiLower
             , isDigit
             , (== '_')
             ]
-        wordSep = '-'
+
+        wordRest = (== '-') : wordStart
 
 data Package = Package
     { getCategory   :: Category
@@ -357,60 +358,56 @@ versionNumParser f g = checkCoverage $ do
     ns <- f $ some $ satisfy isDigit
     pure $ VersionNum $ g $ NE.fromList ns
 
+-- | Both 'PkgName' and 'Repository' have similar parsers
 pkgParser :: forall e s m. (Token s ~ Char, IsString (Tokens s), MonadParsec e s m, MonadFail m)
     => [Char -> Bool]
     -> [Char -> Bool]
-    -> Char
     -> ParseResult e s m String
-pkgParser wordStart wordRest wordSep = do
-    r <- choice
-            [ try $ do
-                -- Uh oh. This looks like a version string
-                v <- parser @FauxVersion
-                choice
-                    [ try $ do
-                        -- But there is hope, because we found a wordSep!
-                        sep <- single wordSep
-                        -- Keep going and see if we can find an end that doesn't look like a version
-                        next <- pkgParser wordStart wordRest wordSep
-                        pure $ Just $ toString v ++ [sep] ++ next
+pkgParser wordStart wordRest = (:) <$> satisfyAny wordStart <*> goOrEnd
+  where
+    goOrEnd :: ParseResult e s m String
+    goOrEnd = try go <|> end
 
-                    , try $ do
-                        -- There are some other characters here...
-                        r <- some $ satisfyAny wordRest
-                        choice
-                            [ try $ do
-                                -- And it keeps going with another wordSep...
-                                sep <- single wordSep
-                                next <- pkgParser wordStart wordRest wordSep
-                                pure $ Just $ toString v ++ r ++ [sep] ++ next
-                            , checkCoverage $ pure $ Just $ toString v ++ r -- or not
-                            ]
+    -- If 'fauxV' gives back a 'Nothing', it means the wole parse ended with
+    -- a Version string and we need to throw the error 'e'.
+    go :: ParseResult e s m String
+    go = do
+        m <- choice
+            [ try fauxV
+            , Just <$> nextChar -- 'fauxV' did not match at all :)
+            ]
+        maybe e pure m
 
-                    ,   -- No wordSep, no other characters, no hope...
-                        -- The parser will _succeed_ but returns Nothing. We call an error
-                        -- later on.
-                        pure Nothing
-                    ]
-            , do
-                -- This string doesn't look like a version. Hurrah!
-                s <- some $ satisfyAny wordStart
-                r <- many $ satisfyAny wordRest
-                let beg = s ++ r
-                choice
-                    [ try $ do
-                        sep <- single wordSep
-                        next <- pkgParser wordStart wordRest wordSep
-                        pure $ Just $ beg ++ [sep] ++ next
-                    , checkCoverage $ pure $ Just beg
-                    ]
+    -- Check for a hyphen followed by something that parses as a 'FauxVersion'.
+    -- If this is matched, but there isn't a successful 'go' parser after it,
+    -- the parser aborts.
+    fauxV :: ParseResult e s m (Maybe String)
+    fauxV = do
+        h <- single '-'
+        v <- parser @FauxVersion
+        choice
+            [ do
+                rest <- go -- Don't accept 'end' as a choice at this point
+                pure $ Just $ h : toString v ++ rest
+            , abort
             ]
 
-    -- Throw an error if we got a Nothing value. This means that it ended
-    -- with something matching Version syntax.
-    maybe f pure r
-  where
-    f :: ParseResult e s m String
-    f = unexpected $ Label $ NE.fromList $
+    nextChar :: ParseResult e s m String
+    nextChar = do
+        c <- satisfyAny wordRest
+        rest <- goOrEnd
+        pure $ c : rest
+
+    end :: ParseResult e s m String
+    end = checkCoverage $ pure ""
+
+    -- 'show' is used here to wrap the string in quotes
+    e :: ParseResult e s m String
+    e = unexpected $ Label $ NE.fromList $ show $
             "ends in a hyphen followed by anything "
             ++ "matching the version syntax"
+
+    -- This is a trick to abort without jumping to the next 'Alternative'
+    -- choice.
+    abort :: Alternative f => f (Maybe a)
+    abort = pure Nothing

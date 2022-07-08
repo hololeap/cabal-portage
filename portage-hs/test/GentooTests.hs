@@ -17,12 +17,16 @@ import Distribution.Portage.Types.Internal
 import Data.Parsable
 import Test.Parsable
 
+gentooTests :: IO TestTree
+gentooTests = testGroup "gentoo system tests" <$> sequenceA
+    [ gentooTest "/var/db/repos tests" <$> repoTree
+    , gentooTest "/var/db/pkg tests" <$> pkgTree
+    ]
+
 -- | Check all package atoms from @/var/db/pkg@ and make sure
 --   they are parsed successfully and pass the "roundtrip" test.
-gentooTests :: IO TestTree
-gentooTests = do
-    pkgStrings <- pkgTree
-    pure $ testGroup "parse /var/db/pkg tree" $ go <$> pkgStrings
+gentooTest :: TestName -> [String] -> TestTree
+gentooTest n pkgStrings = testGroup n $ go <$> pkgStrings
   where
     go :: String -> TestTree
     go pkgString = testCase (show pkgString) $ do
@@ -41,6 +45,24 @@ gentooTests = do
             Right (CompleteParse,pkg) ->
                 assertEqual "roundtrip String->Package->String" pkgString (toString pkg)
 
+-- | Scan the entire @/var/db/repos@ tree for ebuilds and form these into
+--  pacakge atoms.
+repoTree :: IO [String]
+repoTree = runListT $ do
+    let reposDir = "/var/db/repos"
+    checkDir reposDir $ do
+
+        repo <- listDir reposDir
+        cat  <- listDir $ reposDir </> repo
+        n    <- listDir $ reposDir </> repo </> cat
+        eb   <- listDir $ reposDir </> repo </> cat </> n
+
+        let (nv,ext) = splitExtension eb
+
+        guard $ ext == ".ebuild"
+
+        pure $ cat ++ "/" ++ nv ++ "::" ++ repo
+
 -- | Scan the entire @/var/db/pkg@ tree for package atoms in the form
 --   @<category>/<pkg-name>-<version>@. This is inherently part of the directory
 --   structure inside @/var/db/pkg@.
@@ -50,21 +72,23 @@ pkgTree = runListT $ do
     checkDir portagePkgDir $ do
 
         cat <- listDir portagePkgDir           -- Scan for categories
-        nv  <- listDir (portagePkgDir </> cat) -- Scan for names/versions
+        nv  <- listDir $ portagePkgDir </> cat -- Scan for names/versions
 
         case nv of
             '.' : _ -> empty
             '-' : _ -> empty
             []      -> empty
-            _       -> pure $ cat </> nv
-  where
-    listDir :: FilePath -> ListT IO FilePath
-    listDir = ListT . listDirectory
+            _       -> pure $ cat ++ "/" ++ nv
 
-    checkDir :: FilePath -> ListT IO String -> ListT IO String
-    checkDir d rest = do
-        b <- lift $ doesDirectoryExist d
-        if b
-            then rest
-            else lift $ assertFailure $
-                    show d ++ " is not a directory. Is this really a Gentoo system?"
+listDir :: FilePath -> ListT IO FilePath
+listDir d = do
+    lift (doesDirectoryExist d) >>= guard
+    ListT $ listDirectory d
+
+checkDir :: FilePath -> ListT IO a -> ListT IO a
+checkDir d rest = do
+    b <- lift $ doesDirectoryExist d
+    if b
+        then rest
+        else lift $ assertFailure $
+                show d ++ " is not a directory. Is this really a Gentoo system?"

@@ -137,6 +137,18 @@ unitTests = testGroup "unit tests"
                 ))
                 Nothing
                 Nothing
+        , "app-derp/f--98---54.321x_pre1:gawk--::goo" `parserTest`
+            Package
+                (Category "app-derp")
+                (PkgName "f--98--")
+                (Just (Version
+                    (VersionNum (('5':|"4") :| ['3':|"21"]))
+                    (Just (VersionLetter 'x'))
+                    [ (SuffixPre, Just (VersionSuffixNum ('1' :| []))) ]
+                    Nothing
+                ))
+                (Just (Slot "gawk--"))
+                (Just (Repository "goo"))
         ]
     , testGroup "failed QuickCheck tests"
         [ "7-r2b" `parserTest` Repository "7-r2b"
