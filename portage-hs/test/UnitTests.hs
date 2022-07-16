@@ -8,7 +8,7 @@ import Data.Void
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Distribution.Portage.Types.Internal
+import Internal.Distribution.Portage.Types
 import Data.Parsable
 
 unitTests :: TestTree

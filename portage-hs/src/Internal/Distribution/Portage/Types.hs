@@ -18,7 +18,7 @@ Types for internal use
 {-# Language TypeFamilies #-}
 {-# Language UndecidableInstances #-}
 
-module Distribution.Portage.Types.Internal
+module Internal.Distribution.Portage.Types
     (
     -- * Types
       Package(..)

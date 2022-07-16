@@ -23,6 +23,6 @@ module Distribution.Portage.Types
     , VersionRevision(..)
     ) where
 
-import Distribution.Portage.Types.Internal
+import Internal.Distribution.Portage.Types
 
 

@@ -8,25 +8,40 @@ module GentooTests (gentooTests) where
 import Control.Applicative
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.List
+import qualified Data.Text.IO as T
 import System.Directory
 import System.FilePath.Posix
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Distribution.Portage.Types.Internal
+import Internal.Distribution.Portage.Types
+import Internal.Distribution.Portage.Emerge
 import Data.Parsable
 import Test.Parsable
 
 gentooTests :: IO TestTree
 gentooTests = testGroup "gentoo system tests" <$> sequenceA
-    [ gentooTest "/var/db/repos tests" <$> repoTree
-    , gentooTest "/var/db/pkg tests" <$> pkgTree
+    [ gentooParseTests "/var/db/repos parse tests" <$> repoTree
+    , gentooParseTests "/var/db/pkg parse tests" <$> pkgTree
+    , pure emergeWorldTest
     ]
 
--- | Check all package atoms from @/var/db/pkg@ and make sure
---   they are parsed successfully and pass the "roundtrip" test.
-gentooTest :: TestName -> [String] -> TestTree
-gentooTest n pkgStrings = testGroup n $ go <$> pkgStrings
+-- | Emerge world "test". Currently just writes to
+--   @/tmp/emerge-world-test.stdout@,
+--   @/tmp/emerge-world-test.stderr@,
+--   @/tmp/emerge-world-test.exitcode@
+emergeWorldTest :: TestTree
+emergeWorldTest = testCase "emerge world \"test\"" $ do
+    (c, o, e) <- emergeProcess emergeExe $ upgradeWorldArgs ++ pretendArgs
+    T.writeFile "/tmp/emerge-world-test.stdout" o
+    T.writeFile "/tmp/emerge-world-test.stderr" e
+    writeFile "/tmp/emerge-world-test.exitcode" $ show c
+
+
+-- | Check all package atoms and make sure they are parsed successfully and
+--   pass the "roundtrip" test.
+gentooParseTests :: TestName -> [String] -> TestTree
+gentooParseTests n pkgStrings = testGroup n $ go <$> pkgStrings
   where
     go :: String -> TestTree
     go pkgString = testCase (show pkgString) $ do

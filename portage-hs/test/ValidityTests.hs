@@ -18,7 +18,7 @@ import Test.Tasty
 
 import Data.Parsable
 import Test.Parsable
-import Distribution.Portage.Types.Internal
+import Internal.Distribution.Portage.Types
 
 
 validityTests :: STM TestTree
