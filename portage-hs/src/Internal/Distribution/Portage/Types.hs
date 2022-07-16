@@ -25,6 +25,7 @@ module Internal.Distribution.Portage.Types
     , Category(..)
     , PkgName(..)
     , Slot(..)
+    , SubSlot(..)
     , Repository(..)
     -- ** Versions
     , Version(..)
@@ -39,15 +40,11 @@ module Internal.Distribution.Portage.Types
     ) where
 
 import Control.Applicative (Alternative)
--- import Control.Monad.Trans.Writer.CPS
 import Data.Data (Data)
 import Data.Function (on)
 import qualified Data.List as L
--- import Data.Maybe (fromMaybe)
--- import Data.Monoid (Any(..))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
--- import qualified Data.Set as S
 import GHC.Exts (IsList(..))
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)
@@ -226,26 +223,47 @@ instance
     parserName = "portage version"
     parser = versionParser parser
 
-newtype Slot = Slot { unwrapSlot :: String }
+data Slot = Slot
+    { unwrapSlot :: String
+    , getSubSlot :: Maybe SubSlot
+    }
     deriving stock (Show, Eq, Ord, Data, Generic)
-    deriving newtype (IsString, Printable)
+
+instance Printable Slot where
+    toString (Slot s mss)
+        =  s
+        ++ foldMap (\ss -> "/" ++ toString ss) mss
 
 instance (Token s ~ Char, MonadParsec e s m) => Parsable Slot m s e where
     parserName = "portage slot"
     parser = do
-        Slot . concat <$> wordsWithSep wordStart wordRest (const False)
-      where
-        wordStart =
-            [ isAsciiUpper
-            , isAsciiLower
-            , isDigit
-            , (== '_')
-            ]
-        wordRest = wordStart ++
-            [ (== '+')
-            , (== '.')
-            , (== '-')
-            ]
+        s <- slotParser
+        mss <- optional $ try $ single '/' *> parser
+        pure $ Slot s mss
+
+newtype SubSlot = SubSlot { unwrapSubSlot :: String }
+    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving newtype (IsString, Printable)
+
+instance (Token s ~ Char, MonadParsec e s m) => Parsable SubSlot m s e where
+    parserName = "portage sub-slot"
+    parser = SubSlot <$> slotParser
+
+slotParser :: (Token s ~ Char, MonadParsec e s m) => ParseResult e s m String
+slotParser = concat <$> wordsWithSep wordStart wordRest (const False)
+  where
+    wordStart =
+        [ isAsciiUpper
+        , isAsciiLower
+        , isDigit
+        , (== '_')
+        ]
+    wordRest = wordStart ++
+        [ (== '+')
+        , (== '.')
+        , (== '-')
+        ]
+
 
 newtype Repository = Repository { unwrapRepository :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
@@ -279,9 +297,9 @@ instance Printable Package where
         =  toString c
         ++ "/"
         ++ toString n
-        ++ foldMap (\x -> "-"  ++ toString x) mv
-        ++ foldMap (\x -> ":"  ++ toString x) ms
-        ++ foldMap (\x -> "::" ++ toString x) mr
+        ++ foldMap (\v -> "-"  ++ toString v) mv
+        ++ foldMap (\s -> ":"  ++ toString s) ms
+        ++ foldMap (\r -> "::" ++ toString r) mr
 
 instance
     ( Ord e

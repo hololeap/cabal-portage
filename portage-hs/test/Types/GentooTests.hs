@@ -3,19 +3,17 @@
 
 {-# Options_GHC -Wno-deprecations #-} -- Don't nag me about ListT
 
-module GentooTests (gentooTests) where
+module Types.GentooTests (gentooTests) where
 
 import Control.Applicative
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.List
-import qualified Data.Text.IO as T
 import System.Directory
 import System.FilePath.Posix
 import Test.Tasty
 import Test.Tasty.HUnit
 
 import Internal.Distribution.Portage.Types
-import Internal.Distribution.Portage.Emerge
 import Data.Parsable
 import Test.Parsable
 
@@ -23,20 +21,7 @@ gentooTests :: IO TestTree
 gentooTests = testGroup "gentoo system tests" <$> sequenceA
     [ gentooParseTests "/var/db/repos parse tests" <$> repoTree
     , gentooParseTests "/var/db/pkg parse tests" <$> pkgTree
-    , pure emergeWorldTest
     ]
-
--- | Emerge world "test". Currently just writes to
---   @/tmp/emerge-world-test.stdout@,
---   @/tmp/emerge-world-test.stderr@,
---   @/tmp/emerge-world-test.exitcode@
-emergeWorldTest :: TestTree
-emergeWorldTest = testCase "emerge world \"test\"" $ do
-    (c, o, e) <- emergeProcess emergeExe $ upgradeWorldArgs ++ pretendArgs
-    T.writeFile "/tmp/emerge-world-test.stdout" o
-    T.writeFile "/tmp/emerge-world-test.stderr" e
-    writeFile "/tmp/emerge-world-test.exitcode" $ show c
-
 
 -- | Check all package atoms and make sure they are parsed successfully and
 --   pass the "roundtrip" test.

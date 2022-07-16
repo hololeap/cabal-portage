@@ -6,19 +6,32 @@ import Test.Tasty
 
 import Test.Parsable
 
-import ValidityTests
-import UnitTests
+import qualified Emerge.ParserTests as Emerge
+import qualified Types.ValidityTests as Types
+import qualified Types.UnitTests as Types
 #if defined(GENTOO_TESTS)
-import GentooTests
+--import qualified Emerge.GentooTests as Emerge
+import qualified Types.GentooTests as Types
 #endif
 
 main :: IO ()
 main = do
-    tests <- sequenceA
-        [ atomically validityTests
-        , pure unitTests
+    typesTests <- sequenceA
+        [ atomically Types.validityTests
+        , pure Types.unitTests
 #if defined(GENTOO_TESTS)
-        , gentooTests
+        , Types.gentooTests
 #endif
         ]
-    defaultMain $ testGroup "portage-hs tests" tests
+
+    emergeTests <- sequenceA
+        [ Emerge.parserTests
+#if defined(GENTOO_TESTS)
+--        , pure Emerge.gentooTests
+#endif
+        ]
+
+    defaultMain $ testGroup "portage-hs tests"
+        [ testGroup "portage types" typesTests
+        , testGroup "emerge" emergeTests
+        ]

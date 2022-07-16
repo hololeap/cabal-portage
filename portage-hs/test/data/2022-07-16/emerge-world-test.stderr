@@ -1,0 +1,37 @@
+
+WARNING: One or more updates/rebuilds have been skipped due to a dependency conflict:
+
+dev-haskell/ghc-lib-parser-ex:0
+
+  (dev-haskell/ghc-lib-parser-ex-9.2.1.0:0/9.2.1.0::haskell, ebuild scheduled for merge) USE="doc hoogle hscolour test -profile" ABI_X86="(64)" conflicts with
+    <dev-haskell/ghc-lib-parser-ex-9.1:0/9.0.0.6= required by (dev-haskell/hls-hlint-plugin-1.0.4.0:0/1.0.4.0::haskell, installed) USE="doc hoogle hscolour -profile -test" ABI_X86="(64)"
+    ^                              ^^^^^^^^^^^^^^
+    <dev-haskell/ghc-lib-parser-ex-9.0.1:0/9.0.0.6= required by (dev-haskell/hlint-3.3.6:0/3.3.6::haskell, installed) USE="doc gpl hoogle hscolour test -emacs -hsyaml -profile" ABI_X86="(64)"
+    ^                              ^^^^^^^^^^^^^^^^
+    >=dev-haskell/ghc-lib-parser-ex-9.0:0/9.0.0.6= required by (dev-haskell/hls-hlint-plugin-1.0.4.0:0/1.0.4.0::haskell, installed) USE="doc hoogle hscolour -profile -test" ABI_X86="(64)"
+                                       ^^^^^^^^^^^
+    >=dev-haskell/ghc-lib-parser-ex-9.0.0.4:0/9.0.0.6= required by (dev-haskell/hlint-3.3.6:0/3.3.6::haskell, installed) USE="doc gpl hoogle hscolour test -emacs -hsyaml -profile" ABI_X86="(64)"
+                                           ^^^^^^^^^^^
+
+dev-haskell/ghc-lib-parser:0
+
+  (dev-haskell/ghc-lib-parser-9.2.3.20220527:0/9.2.3.20220527::haskell, ebuild scheduled for merge) USE="doc hoogle hscolour -profile" ABI_X86="(64)" conflicts with
+    <dev-haskell/ghc-lib-parser-9.1:0/9.0.2.20211226= required by (dev-haskell/hlint-3.3.6:0/3.3.6::haskell, installed) USE="doc gpl hoogle hscolour test -emacs -hsyaml -profile" ABI_X86="(64)"
+    ^                           ^^^^^^^^^^^^^^^^^^^^^
+    >=dev-haskell/ghc-lib-parser-9.0:0/9.0.2.20211226= required by (dev-haskell/ghc-lib-parser-ex-9.0.0.6:0/9.0.0.6::haskell, installed) USE="doc hoogle hscolour test -profile" ABI_X86="(64)"
+                                    ^^^^^^^^^^^^^^^^^^
+    <dev-haskell/ghc-lib-parser-9.1:0/9.0.2.20211226= required by (dev-haskell/ormolu-0.3.1.0:0/0.3.1.0::haskell, installed) USE="doc examples executable hoogle hscolour test -profile" ABI_X86="(64)"
+    ^                           ^^^^^^^^^^^^^^^^^^^^^
+    <dev-haskell/ghc-lib-parser-9.1:0/9.0.2.20211226= required by (dev-haskell/ghc-lib-parser-ex-9.0.0.6:0/9.0.0.6::haskell, installed) USE="doc hoogle hscolour test -profile" ABI_X86="(64)"
+    ^                           ^^^^^^^^^^^^^^^^^^^^^
+    >=dev-haskell/ghc-lib-parser-9.0:0/9.0.2.20211226= required by (dev-haskell/fourmolu-0.4.0.0:0/0.4.0.0::haskell, installed) USE="doc examples executable hoogle hscolour test -profile" ABI_X86="(64)"
+                                    ^^^^^^^^^^^^^^^^^^
+    ~dev-haskell/ghc-lib-parser-9.0.2.20211226:0/9.0.2.20211226= required by (dev-haskell/ghc-lib-9.0.2.20211226:0/9.0.2.20211226::haskell, installed) USE="doc hoogle hscolour -profile" ABI_X86="(64)"
+    ^                                         ^^^^^^^^^^^^^^^^^^
+    <dev-haskell/ghc-lib-parser-9.1:0/9.0.2.20211226= required by (dev-haskell/fourmolu-0.4.0.0:0/0.4.0.0::haskell, installed) USE="doc examples executable hoogle hscolour test -profile" ABI_X86="(64)"
+    ^                           ^^^^^^^^^^^^^^^^^^^^^
+    >=dev-haskell/ghc-lib-parser-9.0:0/9.0.2.20211226= required by (dev-haskell/ormolu-0.3.1.0:0/0.3.1.0::haskell, installed) USE="doc examples executable hoogle hscolour test -profile" ABI_X86="(64)"
+                                    ^^^^^^^^^^^^^^^^^^
+    >=dev-haskell/ghc-lib-parser-9.0:0/9.0.2.20211226= required by (dev-haskell/hlint-3.3.6:0/3.3.6::haskell, installed) USE="doc gpl hoogle hscolour test -emacs -hsyaml -profile" ABI_X86="(64)"
+                                    ^^^^^^^^^^^^^^^^^^
+

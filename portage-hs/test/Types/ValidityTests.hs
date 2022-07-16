@@ -4,7 +4,7 @@
 
 {-# Options_GHC -Wno-orphans #-}
 
-module ValidityTests (validityTests) where
+module Types.ValidityTests (validityTests) where
 
 -- import Control.Monad.STM
 -- import Data.Char
@@ -76,19 +76,27 @@ instance Arbitrary PkgName where
 -- > A slot name may contain any of the characters [A-Za-z0-9+_.-].
 -- > It must not begin with a hyphen, a dot or a plus sign.
 instance Arbitrary Slot where
-    arbitrary = Slot <$> wordGen wordStart wordRest
-      where
-        wordStart =
-            [ isAsciiUpper
-            , isAsciiLower
-            , isDigit
-            , (== '_')
-            ]
-        wordRest = wordStart ++
-            [ (== '+')
-            , (== '.')
-            , (== '-')
-            ]
+    arbitrary = Slot
+        <$> slotGen
+        <*> liftArbitrary arbitrary
+
+instance Arbitrary SubSlot where
+    arbitrary = SubSlot <$> slotGen
+
+slotGen :: Gen String
+slotGen = wordGen wordStart wordRest
+  where
+    wordStart =
+        [ isAsciiUpper
+        , isAsciiLower
+        , isDigit
+        , (== '_')
+        ]
+    wordRest = wordStart ++
+        [ (== '+')
+        , (== '.')
+        , (== '-')
+        ]
 
 
 -- TODO

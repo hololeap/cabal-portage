@@ -1,7 +1,7 @@
 {-# Language FlexibleContexts #-}
 {-# Language TypeApplications #-}
 
-module UnitTests (unitTests) where
+module Types.UnitTests (unitTests) where
 
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Void
@@ -50,7 +50,7 @@ unitTests = testGroup "unit tests"
                 (Category "dev-python")
                 (PkgName "nose")
                 Nothing
-                (Just (Slot "1337"))
+                (Just (Slot "1337" Nothing))
                 Nothing
         , "dev-python/nose::uberRepo" `parserTest`
             Package
@@ -69,7 +69,7 @@ unitTests = testGroup "unit tests"
                     []
                     (Just (VersionRevision ('1':|"23")))
                 ))
-                (Just (Slot "1337"))
+                (Just (Slot "1337" Nothing))
                 (Just (Repository "uberRepo"))
         ]
     , testGroup "tricky tests"
@@ -147,8 +147,20 @@ unitTests = testGroup "unit tests"
                     [ (SuffixPre, Just (VersionSuffixNum ('1' :| []))) ]
                     Nothing
                 ))
-                (Just (Slot "gawk--"))
+                (Just (Slot "gawk--" Nothing))
                 (Just (Repository "goo"))
+        , "app-office/hledger-web-1.26.1:0/1.26.1::haskell" `parserTest`
+            Package
+                (Category "app-office")
+                (PkgName "hledger-web")
+                (Just (Version
+                    (VersionNum (('1':|[]) :| ['2':|"6", '1':|[]]))
+                    Nothing
+                    []
+                    Nothing
+                ))
+                (Just (Slot "0" (Just (SubSlot "1.26.1"))))
+                (Just (Repository "haskell"))
         ]
     , testGroup "failed QuickCheck tests"
         [ "7-r2b" `parserTest` Repository "7-r2b"
