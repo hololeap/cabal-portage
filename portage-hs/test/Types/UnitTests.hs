@@ -1,4 +1,5 @@
 {-# Language FlexibleContexts #-}
+{-# Language ScopedTypeVariables #-}
 {-# Language TypeApplications #-}
 
 module Types.UnitTests (unitTests) where
@@ -10,6 +11,7 @@ import Test.Tasty.HUnit
 
 import Internal.Distribution.Portage.Types
 import Data.Parsable
+import Test.Parsable
 
 unitTests :: TestTree
 unitTests = testGroup "unit tests"
@@ -169,7 +171,7 @@ unitTests = testGroup "unit tests"
     ]
 
 -- Takes a string and an expected result, and creates a TestTree from them
-parserTest ::
+parserTest :: forall a.
     ( Parsable a (Parsec Void String) String Void
     , Eq a
     , Show a
@@ -177,4 +179,4 @@ parserTest ::
     -> a
     -> TestTree
 parserTest s x = testCase (show s) $
-    Right (CompleteParse, x) @=? runParsable @_ @Void "" s
+    Right (CompleteParse, x) @=? runParser (checkParsable @a @Void) "" s

@@ -7,6 +7,7 @@ Test functions for 'Parsable' and 'Printable'.
 {-# Language CPP #-}
 {-# Language FlexibleContexts #-}
 {-# Language ScopedTypeVariables #-}
+{-# Language TupleSections #-}
 {-# Language TypeApplications #-}
 
 module Test.Parsable
@@ -15,6 +16,8 @@ module Test.Parsable
     , parsableRoundtrip
     , wordsWithSepGen
     , wordGen
+    , checkParsable
+    , checkCoverage
     , ParseErrorBundle(..)
     , module Control.Monad.STM
 --     , module Control.Concurrent.STM.TChan
@@ -27,9 +30,9 @@ import Data.Function (fix)
 import qualified Data.List as L
 import Data.Typeable
 import Data.Void
-import Test.QuickCheck
+-- import Test.QuickCheck
 import Test.Tasty
-import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck hiding (checkCoverage)
 
 import Data.Parsable hiding (label)
 
@@ -65,13 +68,12 @@ parsableProp c x = whenFail (printErrors c) $ idempotentIOProperty $ do
     pure $ r === Right (CompleteParse, x)
 #endif
 
-parsableRoundtrip ::
+parsableRoundtrip :: forall a.
     ( Parsable a (Parsec Void String) String Void
     , Printable a
     ) => a -> (String, Either (ParseErrorBundle String Void) (ParseCoverage, a))
-parsableRoundtrip x =
-    let s = toString x
-    in (s, runParsable "" s)
+parsableRoundtrip x = (s, runParser checkParsable "" s)
+    where s = toString x
 
 wordsWithSepGen
     :: [Char -> Bool]
@@ -82,6 +84,23 @@ wordsWithSepGen wordStart wordRest wordSep = do
     pieces <- listOf1 $ wordGen wordStart wordRest
     s <- arbitrary `suchThat` wordSep
     pure $ L.intercalate [s] pieces
+
+checkParsable :: forall a e s m. (Parsable a m s e, Printable (Tokens s)) =>
+    m (ParseCoverage, a)
+checkParsable = checkCoverage (parser <?> n)
+    where n = getParserName $ parserName @a @m
+
+-- | Run the specified parser, then write 'CompleteParse' if we are at
+--   'eof', otherwise v'PartialParse'.
+checkCoverage :: (Printable (Tokens s), MonadParsec e s m)
+    => m a
+    -> m (ParseCoverage, a)
+checkCoverage p = do
+    x <- p
+    (,x) <$> choice
+        [ CompleteParse <$ eof
+        , PartialParse . toString <$> lookAhead (takeWhileP Nothing (const True))
+        ]
 
 wordGen :: [Char -> Bool] -> [Char -> Bool] -> Gen String
 wordGen wordStart wordRest = do

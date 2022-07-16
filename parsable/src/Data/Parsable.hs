@@ -36,15 +36,15 @@ instructions on how to use these extensions.
 {-# Language DerivingVia #-}
 {-# Language FlexibleContexts #-}
 {-# Language FlexibleInstances #-}
-{-# Language FunctionalDependencies #-}
+-- {-# Language FunctionalDependencies #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# Language MultiParamTypeClasses #-}
 {-# Language OverloadedStrings #-}
 {-# Language QuantifiedConstraints #-}
 {-# Language ScopedTypeVariables #-}
-{-# Language TupleSections #-}
 {-# Language TypeApplications #-}
 {-# Language TypeFamilies #-}
+{-# Language UndecidableInstances #-}
 
 module Data.Parsable
     (
@@ -57,15 +57,11 @@ module Data.Parsable
     , NaturalParsable(..)
     -- * Partial parses
     , ParseCoverage(..)
-    -- ** As a Monad
-    , ParseResult
-    , runParseResult
     -- * Parsing functions
     , satisfyAny
     , someAllowed
     , wordsWithSep
     , wordsWithSep'
-    , checkCoverage
     , readParsec
     -- * Printing
     , Printable(..)
@@ -85,7 +81,6 @@ module Data.Parsable
 import Control.Applicative hiding (some, many)
 import Control.Monad
 import Control.Monad.Trans.Class
-import Control.Monad.Trans.Writer.Strict (WriterT(..))
 import Data.Char
 import Data.Data
 import Data.Functor.Identity
@@ -113,35 +108,13 @@ data ParseCoverage
     deriving stock (Show, Eq, Ord)
     deriving Semigroup via Last ParseCoverage
 
--- | Derives most instances via
---   @('WriterT' ('Maybe' 'ParseCoverage') m a)@
-newtype ParseResult e s m a = ParseResult
-    { unwrapParseResult :: m (a, Maybe ParseCoverage) }
-    deriving stock Functor
-    deriving (Applicative, Alternative, Monad, MonadPlus, MonadFail, MonadParsec e s)
-        via WriterT (Maybe ParseCoverage) m
-    deriving MonadTrans via WriterT (Maybe ParseCoverage)
-
--- | Extract the result of a 'ParseResult' computation.
---
---   This will throw an error if no 'ParseCoverage' has been written
---   (e.g. only functions like 'pure', 'lift', etc. have been called).
-runParseResult :: MonadFail m
-    => ParseResult e s m a
-    -> m (ParseCoverage, a)
-runParseResult = go <=< unwrapParseResult
-  where
-    go (x, Just c ) = pure (c, x)
-    go (_, Nothing) = fail "runParseResult was called, but no ParseCoverage was created!"
-{-# Inline runParseResult #-}
-
 newtype ParserName a e s (m :: Type -> Type) = ParserName { getParserName :: String }
     deriving stock (Show, Eq, Ord)
     deriving newtype IsString
 
 -- | Represents types that have a valid Parsec parser.
 class MonadParsec e s m => Parsable a (m :: Type -> Type) s e where
-    parser :: ParseResult e s m a
+    parser :: m a
     parserName :: ParserName a e s m
     {-# Minimal parser, parserName #-}
 
@@ -151,7 +124,7 @@ newtype NaturalParsable a = NaturalParsable
 instance (MonadParsec e s m, MonadFail m, Token s ~ Char, Read a, Typeable a)
     => Parsable (NaturalParsable a) m s e where
     parserName = "natural number"
-    parser = checkCoverage $ (<?> "natural number") $ do
+    parser = (<?> "natural number") $ do
         ds <- some (satisfy isDigit)
         case readMaybe ds of
             Just i -> pure $ NaturalParsable i
@@ -161,13 +134,13 @@ instance (MonadParsec e s m, MonadFail m, Token s ~ Char, Read a, Typeable a)
 
 -- | Convenience function to run a 'Parsable' parser.
 runParsableT :: forall a m s e. (Parsable a (ParsecT e s m) s e, Monad m)
-    => String -> s -> m (Either (ParseErrorBundle s e) (ParseCoverage, a))
-runParsableT = runParserT $ runParseResult (parser <?> n)
+    => String -> s -> m (Either (ParseErrorBundle s e) a)
+runParsableT = runParserT (parser <?> n)
     where n = getParserName $ parserName @a @(ParsecT e s m)
 
 runParsable :: forall a e s. Parsable a (ParsecT e s Identity) s e
-    => String -> s -> Either (ParseErrorBundle s e) (ParseCoverage, a)
-runParsable = runParser $ runParseResult (parser <?> n)
+    => String -> s -> Either (ParseErrorBundle s e) a
+runParsable = runParser (parser <?> n)
     where n = getParserName $ parserName @a @(ParsecT e s Identity)
 
 -- | Pass a previously-parsed string to this function in order to attempt
@@ -190,7 +163,7 @@ satisfyAny fs = satisfy $ \c -> or [f c | f <- fs]
 -- | One or more characters that satisfy any of the given predicates
 someAllowed :: (MonadParsec e s m, Token s ~ Char)
     => [Char -> Bool]
-    -> ParseResult e s m [String]
+    -> m [String]
 someAllowed allowed = wordsWithSep allowed allowed (const False)
 
 -- | Best effort parsing of "words" starting with certain allowed characters,
@@ -218,7 +191,7 @@ wordsWithSep :: (MonadParsec e s m, Token s ~ Char)
     => [Char -> Bool]    -- ^ Characters allowed at the start of a word
     -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
     -> (Char -> Bool)    -- ^ Characters that separate words
-    -> ParseResult e s m [String]
+    -> m [String]
 wordsWithSep = wordsWithSepG Nothing
 
 -- | The same as 'wordsWithSep', but this takes a parser which will be run in
@@ -229,7 +202,7 @@ wordsWithSep' :: (MonadParsec e s m, Token s ~ Char)
     -> [Char -> Bool]    -- ^ Characters allowed at the start of a word
     -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
     -> (Char -> Bool)    -- ^ Character that separates words
-    -> ParseResult e s m [String]
+    -> m [String]
 wordsWithSep' = wordsWithSepG . Just
 
 -- | General version of 'wordsWithSep'. Not exported.
@@ -239,7 +212,7 @@ wordsWithSepG :: (MonadParsec e s m, Token s ~ Char)
     -> [Char -> Bool]    -- ^ Characters allowed at the start of a word
     -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
     -> (Char -> Bool)    -- ^ Character that separates words
-    -> ParseResult e s m [String]
+    -> m [String]
 wordsWithSepG maybeBeg wordStart wordRest wordSep = do
     let beg = flip fromMaybe maybeBeg $ do
                     w <- some $ satisfyAny wordStart
@@ -247,22 +220,11 @@ wordsWithSepG maybeBeg wordStart wordRest wordSep = do
                     pure $ w ++ r
     choice
         [ try $ do
-            b    <- lift beg
+            b    <- beg
             _    <- satisfy wordSep
             next <- wordsWithSepG Nothing wordStart wordRest wordSep
             pure $ b : next
-        , checkCoverage $ (:[]) <$> beg
-        ]
-
--- | Run the specified parser, then write 'CompleteParse' if we are at
---   'eof', otherwise v'PartialParse'.
-checkCoverage :: (MonadParsec e s m, Token s ~ Char)
-    => m a
-    -> ParseResult e s m a
-checkCoverage p = ParseResult $ p >>= \x ->
-    (x,) . Just <$> choice
-        [ CompleteParse <$ eof
-        , PartialParse <$> lookAhead (some anySingle)
+        , (:[]) <$> beg
         ]
 
 -- | Types that can be converted back to a @String@.

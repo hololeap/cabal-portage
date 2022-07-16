@@ -30,7 +30,7 @@ gentooParseTests n pkgStrings = testGroup n $ go <$> pkgStrings
   where
     go :: String -> TestTree
     go pkgString = testCase (show pkgString) $ do
-        let pkgE = runParsable @Package @Void "" pkgString
+        let pkgE = runParser (checkParsable @Package @Void) "" pkgString
         case pkgE of
             Left e ->
                 assertFailure $

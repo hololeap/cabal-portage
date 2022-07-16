@@ -8,38 +8,37 @@ module Internal.Distribution.Portage.Emerge.Parser
     ) where
 
 import Control.Monad.Combinators
+import Data.Maybe
 import qualified Data.Set as S
 import Data.Set (Set)
-import Text.Megaparsec
-import Text.Megaparsec.Char
+import Data.Text (Text)
+import Data.Void
 
-import Data.Parsable
+import Data.Parsable hiding (space)
 import Internal.Distribution.Portage.Types
 
-emergeParser :: forall e s m. (Parsable Package m s e, Token s ~ Char)
-    => ParseResult e s m (Set Package)
-emergeParser = choice
-    [ do
-        this <- try packageLine <|> (S.empty <$ skipLine)
-        rest <- emergeParser
-        pure $ this <> rest
-    , checkCoverage $ S.empty <$ eof
-    ]
-  where
-    packageLine :: ParseResult e s m (Set Package)
-    packageLine = do
-        _ <- space
-        _ <- single '['
-        _ <- takeWhileP Nothing (/= ']')
-        _ <- single ']'
-        _ <- space
-        pkg <- parser
-        _ <- space
-        _ <- skipLine
-        pure $ S.singleton pkg
 
-    skipLine :: ParseResult e s m ()
-    skipLine = do
-        _ <- takeWhileP Nothing (\c -> c /= '\r' && c /= '\n')
-        _ <- newline
-        pure ()
+emergeParser :: Parsec Void Text (Set Package)
+emergeParser
+    = fmap (S.fromList . catMaybes) (sepEndBy lineParser newline)
+
+lineParser :: Parsec Void Text (Maybe Package)
+lineParser = Just <$> try packageLine <|> Nothing <$ skipRest
+
+packageLine :: Parsec Void Text Package
+packageLine = do
+    _ <- space
+    _ <- single '['
+    _ <- takeWhileP Nothing (\c -> c /= ']' && c /= '\n')
+    _ <- single ']'
+    _ <- space
+    pkg <- parser
+    _ <- space
+    _ <- skipRest
+    pure pkg
+
+skipRest :: Parsec Void Text ()
+skipRest = void $ takeWhileP Nothing (/= '\n')
+
+space :: Parsec Void Text ()
+space = void $ takeWhileP Nothing (\c -> c == ' ' || c == '\t')

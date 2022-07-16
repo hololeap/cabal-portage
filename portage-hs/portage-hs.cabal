@@ -77,7 +77,6 @@ library portage-hs-internal
     build-depends:
         , base >=4.13 && <5
         , containers >=0.6.2.1
-        , megaparsec
         , parser-combinators
         , process >=1.6.9.0
         , text >=1.2.4.0

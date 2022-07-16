@@ -10,7 +10,7 @@ import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.List
 -- import Data.Either
-import Data.Void
+-- import Data.Void
 -- import qualified Data.List as L
 import qualified Data.Text.IO as T
 import System.Directory
@@ -22,6 +22,7 @@ import Text.Megaparsec
 import Data.Parsable
 import Internal.Distribution.Portage.Emerge
 import Internal.Distribution.Portage.Emerge.Parser
+import Test.Parsable
 
 parserTests :: IO TestTree
 parserTests = do
@@ -31,7 +32,7 @@ parserTests = do
 
 stdoutTest :: FilePath -> StdOut -> TestTree
 stdoutTest d o = testCase d $ do
-    let r = runParser (runParseResult @Void emergeParser) f o
+    let r = runParser (checkCoverage emergeParser) f o
     case r of
         Left e ->
             assertFailure $

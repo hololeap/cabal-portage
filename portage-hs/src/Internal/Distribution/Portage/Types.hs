@@ -118,8 +118,7 @@ instance Printable VersionLetter where
 
 instance (Token s ~ Char, MonadParsec e s m) => Parsable VersionLetter m s e where
     parserName = "portage version letter"
-    parser = checkCoverage $
-        VersionLetter <$> satisfy isAsciiLower
+    parser = VersionLetter <$> satisfy isAsciiLower
 
 data VersionSuffix
     = SuffixAlpha
@@ -143,7 +142,7 @@ instance
     , MonadParsec e s m
     ) => Parsable VersionSuffix m s e where
     parserName = "portage version suffix"
-    parser = checkCoverage $ choice
+    parser = choice
         [ SuffixAlpha <$ string "alpha"
         , SuffixBeta  <$ string "beta"
         , SuffixPre   <$ string "pre"
@@ -164,8 +163,7 @@ instance
     , MonadFail m
     ) => Parsable VersionSuffixNum m s e where
     parserName = "portage version suffix number"
-    parser = checkCoverage $
-        VersionSuffixNum . NE.fromList <$> some (satisfy isDigit)
+    parser = VersionSuffixNum . NE.fromList <$> some (satisfy isDigit)
 
 newtype VersionRevision = VersionRevision
     { unwrapVersionRevision :: NonEmpty Char }
@@ -180,7 +178,7 @@ instance
     , MonadFail m
     ) => Parsable VersionRevision m s e where
     parserName = "portage version revision"
-    parser = checkCoverage $ do
+    parser = do
         _ <- single 'r'
         VersionRevision . NE.fromList <$> some (satisfy isDigit)
 
@@ -249,7 +247,7 @@ instance (Token s ~ Char, MonadParsec e s m) => Parsable SubSlot m s e where
     parserName = "portage sub-slot"
     parser = SubSlot <$> slotParser
 
-slotParser :: (Token s ~ Char, MonadParsec e s m) => ParseResult e s m String
+slotParser :: (Token s ~ Char, MonadParsec e s m) => m String
 slotParser = concat <$> wordsWithSep wordStart wordRest (const False)
   where
     wordStart =
@@ -356,7 +354,7 @@ versionParser ::
     , IsString (Tokens s)
     , MonadParsec e s m
     , MonadFail m
-    ) => ParseResult e s m VersionNum -> ParseResult e s m Version
+    ) => m VersionNum -> m Version
 versionParser pn = do
         n <- pn
         l <- optional $ try parser
@@ -371,8 +369,8 @@ versionParser pn = do
 versionNumParser ::
     ( Token s ~ Char
     , MonadParsec e s m
-    ) => (m [Char] -> m [a]) -> (NonEmpty a -> NonEmpty (NonEmpty Char)) -> ParseResult e s m VersionNum
-versionNumParser f g = checkCoverage $ do
+    ) => (m [Char] -> m [a]) -> (NonEmpty a -> NonEmpty (NonEmpty Char)) -> m VersionNum
+versionNumParser f g = do
     ns <- f $ some $ satisfy isDigit
     pure $ VersionNum $ g $ NE.fromList ns
 
@@ -380,15 +378,15 @@ versionNumParser f g = checkCoverage $ do
 pkgParser :: forall e s m. (Token s ~ Char, IsString (Tokens s), MonadParsec e s m, MonadFail m)
     => [Char -> Bool]
     -> [Char -> Bool]
-    -> ParseResult e s m String
+    -> m String
 pkgParser wordStart wordRest = (:) <$> satisfyAny wordStart <*> goOrEnd
   where
-    goOrEnd :: ParseResult e s m String
+    goOrEnd :: m String
     goOrEnd = try go <|> end
 
     -- If 'fauxV' gives back a 'Nothing', it means the wole parse ended with
     -- a Version string and we need to throw the error 'e'.
-    go :: ParseResult e s m String
+    go :: m String
     go = do
         m <- choice
             [ try fauxV
@@ -399,7 +397,7 @@ pkgParser wordStart wordRest = (:) <$> satisfyAny wordStart <*> goOrEnd
     -- Check for a hyphen followed by something that parses as a 'FauxVersion'.
     -- If this is matched, but there isn't a successful 'go' parser after it,
     -- the parser aborts.
-    fauxV :: ParseResult e s m (Maybe String)
+    fauxV :: m (Maybe String)
     fauxV = do
         h <- single '-'
         v <- parser @FauxVersion
@@ -410,17 +408,17 @@ pkgParser wordStart wordRest = (:) <$> satisfyAny wordStart <*> goOrEnd
             , abort
             ]
 
-    nextChar :: ParseResult e s m String
+    nextChar :: m String
     nextChar = do
         c <- satisfyAny wordRest
         rest <- goOrEnd
         pure $ c : rest
 
-    end :: ParseResult e s m String
-    end = checkCoverage $ pure ""
+    end :: m String
+    end = pure ""
 
     -- 'show' is used here to wrap the string in quotes
-    e :: ParseResult e s m String
+    e :: m String
     e = unexpected $ Label $ NE.fromList $ show $
             "ends in a hyphen followed by anything "
             ++ "matching the version syntax"

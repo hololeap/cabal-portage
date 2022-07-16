@@ -60,7 +60,6 @@ library
     build-depends:
         , base >=4.13 && <5
         , parsable
-        , QuickCheck
         , stm >=2.5
         , tasty
         , tasty-quickcheck
