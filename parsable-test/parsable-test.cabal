@@ -3,7 +3,7 @@ name:               parsable-test
 version:            0.1.0.0
 synopsis:           Test functions for the parsable package
 
-tested-with:        GHC == { 8.10.7, 9.0.2 }
+tested-with:        GHC == { 8.8.4, 8.10.7, 9.0.2, 9.2.2 }
 
 -- description:
 homepage:           https://github.com/hololeap/cabal-portage/tree/main/parsable-test
@@ -28,7 +28,6 @@ flag verbose-tests
     default:     False
     manual:      True
 
--- GHC 8.8 doesn't like the big list of -Wno-*
 common all
     ghc-options:        -Weverything
                         -Wno-missing-exported-signatures
@@ -37,12 +36,15 @@ common all
                         -Wno-all-missed-specialisations
                         -Wno-unsafe
                         -Wno-safe
-                        -Wno-missing-safe-haskell-mode
                         -Wno-missing-local-signatures
                         -Wno-implicit-prelude
-                        -Wno-prepositive-qualified-module
                         -Wno-missing-deriving-strategies
                         -foptimal-applicative-do
+    if impl(ghc >= 8.10)
+        ghc-options:    -Wno-missing-safe-haskell-mode
+                        -Wno-prepositive-qualified-module
+    if impl(ghc >= 9.2)
+        ghc-options:    -Wno-missing-kind-signatures
     if flag(pedantic)
         ghc-options:    -Werror
 
