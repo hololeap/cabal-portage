@@ -71,15 +71,19 @@ library portage-hs-internal
     import: all
     exposed-modules:
         , Internal.Distribution.Portage.Types
+        , Internal.Distribution.Portage.PkgDB
         , Internal.Distribution.Portage.Emerge
         , Internal.Distribution.Portage.Emerge.Parser
 
     build-depends:
         , base >=4.13 && <5
-        , containers >=0.6.2.1
-        , parser-combinators
-        , process >=1.6.9.0
-        , text >=1.2.4.0
+        , containers
+        , directory
+        , filepath
+        , mtl
+        , process
+        , text
+        , transformers
         , parsable
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -96,9 +100,9 @@ test-suite portage-hs-test
         , Types.UnitTests
     build-depends:
         , base
-        , directory >=1.3.6.0
-        , filepath >=1.4.0.0
-        , megaparsec
+        , containers
+        , directory
+        , filepath
         , portage-hs-internal
         , parsable
         , parsable-test
@@ -106,11 +110,14 @@ test-suite portage-hs-test
         , tasty
         , tasty-hunit
         , text
-        , transformers >=0.5.6.2
+        , transformers
 
     if flag(gentoo-tests)
+        build-depends:
+            , pretty-simple
         CPP-Options:
             -DGENTOO_TESTS
         other-modules:
             , Emerge.GentooTests
+            , PkgDB.GentooTests
             , Types.GentooTests

@@ -36,7 +36,6 @@ instructions on how to use these extensions.
 {-# Language DerivingVia #-}
 {-# Language FlexibleContexts #-}
 {-# Language FlexibleInstances #-}
--- {-# Language FunctionalDependencies #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# Language MultiParamTypeClasses #-}
 {-# Language OverloadedStrings #-}
@@ -55,13 +54,9 @@ module Data.Parsable
     , runParsable
     -- ** Wrappers
     , NaturalParsable(..)
-    -- * Partial parses
-    , ParseCoverage(..)
     -- * Parsing functions
     , satisfyAny
-    , someAllowed
-    , wordsWithSep
-    , wordsWithSep'
+    , wordAllowed
     , readParsec
     -- * Printing
     , Printable(..)
@@ -74,55 +69,39 @@ module Data.Parsable
     , module Data.Char
     , module Data.Functor.Identity
     , module Data.String
-    , module Text.Megaparsec
-    , module Text.Megaparsec.Char
+    , module Text.Parsec
+    , module Text.Parsec.Char
     ) where
 
-import Control.Applicative hiding (some, many)
+import Control.Applicative hiding (many)
 import Control.Monad
 import Control.Monad.Trans.Class
 import Data.Char
 import Data.Data
 import Data.Functor.Identity
 import Data.Kind
-import Data.Maybe (fromMaybe)
-import Data.Semigroup (Last(..))
 import Data.String
 import Data.Text (Text, unpack)
 import GHC.Generics
-import Text.Megaparsec
-import Text.Megaparsec.Char
+import Text.Parsec
+import Text.Parsec.Char
 import Text.Read (readMaybe)
 
--- | If a parse succeeds for the beginning of the input, but then fails, we
---   choose the 'PartialParse' constructor. If the entire parse was successful,
---   we choose 'CompleteParse'.
---
---   This is mostly useful for testing parsers where we need to test them
---   individually (must end with 'CompleteParse') and also composed together
---   (individual parsers may end with 'PartialParse' if they do not conclude
---   the larger parse).
-data ParseCoverage
-    = PartialParse String
-    | CompleteParse
-    deriving stock (Show, Eq, Ord)
-    deriving Semigroup via Last ParseCoverage
-
-newtype ParserName a e s (m :: Type -> Type) = ParserName { getParserName :: String }
+newtype ParserName a s u (m :: Type -> Type) = ParserName { getParserName :: String }
     deriving stock (Show, Eq, Ord)
     deriving newtype IsString
 
 -- | Represents types that have a valid Parsec parser.
-class MonadParsec e s m => Parsable a (m :: Type -> Type) s e where
-    parser :: m a
-    parserName :: ParserName a e s m
+class Parsable a (m :: Type -> Type) u s where
+    parser :: ParsecT s u m a
+    parserName :: ParserName a s u m
     {-# Minimal parser, parserName #-}
 
 newtype NaturalParsable a = NaturalParsable
     { unwrapNaturalParsable :: a }
 
-instance (MonadParsec e s m, MonadFail m, Token s ~ Char, Read a, Typeable a)
-    => Parsable (NaturalParsable a) m s e where
+instance (Stream s m Char, Read a, Typeable a)
+    => Parsable (NaturalParsable a) m u s where
     parserName = "natural number"
     parser = (<?> "natural number") $ do
         ds <- some (satisfy isDigit)
@@ -133,19 +112,19 @@ instance (MonadParsec e s m, MonadFail m, Token s ~ Char, Read a, Typeable a)
         t = show $ typeRep $ Proxy @a
 
 -- | Convenience function to run a 'Parsable' parser.
-runParsableT :: forall a m s e. (Parsable a (ParsecT e s m) s e, Monad m)
-    => String -> s -> m (Either (ParseErrorBundle s e) a)
-runParsableT = runParserT (parser <?> n)
-    where n = getParserName $ parserName @a @(ParsecT e s m)
+runParsableT :: forall a m s. (Stream s m Char, Parsable a m () s)
+    => String -> s -> m (Either ParseError a)
+runParsableT = runParserT (parser <?> n) ()
+    where n = getParserName $ parserName @a @m @() @s
 
-runParsable :: forall a e s. Parsable a (ParsecT e s Identity) s e
-    => String -> s -> Either (ParseErrorBundle s e) a
-runParsable = runParser (parser <?> n)
-    where n = getParserName $ parserName @a @(ParsecT e s Identity)
+runParsable :: forall a s. (Stream s Identity Char, Parsable a Identity () s)
+    => String -> s -> Either ParseError a
+runParsable = runParser (parser <?> n) ()
+    where n = getParserName $ parserName @a @Identity @() @s
 
 -- | Pass a previously-parsed string to this function in order to attempt
 --   using 'read'. Produces proper error messages on failure.
-readParsec :: forall a e s m. (MonadParsec e s m, MonadFail m, Typeable a, Read a) => String -> m a
+readParsec :: forall a s u m. (Typeable a, Read a) => String -> ParsecT s u m a
 readParsec s = (<?> typeName ++ " (Read instance)") $
     case readMaybe s of
         Just x -> pure x
@@ -156,76 +135,18 @@ readParsec s = (<?> typeName ++ " (Read instance)") $
             ++ show s
     where typeName = show $ typeRep $ Proxy @a
 
--- | Parse a Char that satisfies any of the given predicates
-satisfyAny :: MonadParsec e s m => [Token s -> Bool] -> m (Token s)
+-- | Parse a token that satisfies any of the given predicates
+satisfyAny :: Stream s m Char => [Char -> Bool] -> ParsecT s u m Char
 satisfyAny fs = satisfy $ \c -> or [f c | f <- fs]
 
--- | One or more characters that satisfy any of the given predicates
-someAllowed :: (MonadParsec e s m, Token s ~ Char)
-    => [Char -> Bool]
-    -> m [String]
-someAllowed allowed = wordsWithSep allowed allowed (const False)
-
--- | Best effort parsing of "words" starting with certain allowed characters,
---   then multiple of characters allowed after the start of a word.
---
---   Words are separated by certain allowed characters, such as @\'-\'@ and
---   @\'_\'@.
---
---   Example:
---
---   > wordsWithSep [isAsciiUpper] [isAsciiUpper, isAsciiLower] [(== '-')]
---
---   This would parse a string such as @"SomeAwesome-Thing"@:
---
---       * The first character of each word must be an upper-case ASCII letter.
---
---       * The remaining characters of each word may be upper- or lower-case
---         letters.
---
---       * Words are separated by @'-'@ characters.
---
---  If a @wordsWithSep@ parser fails, it will return v'PartialParse' wrapping
---  the string up to and including the last successfully parsed word.
-wordsWithSep :: (MonadParsec e s m, Token s ~ Char)
-    => [Char -> Bool]    -- ^ Characters allowed at the start of a word
-    -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
-    -> (Char -> Bool)    -- ^ Characters that separate words
-    -> m [String]
-wordsWithSep = wordsWithSepG Nothing
-
--- | The same as 'wordsWithSep', but this takes a parser which will be run in
---   place of normal word detection for the first word. This allows for
---   starting with generally unallowed characters before the first separator.
-wordsWithSep' :: (MonadParsec e s m, Token s ~ Char)
-    => m String -- ^ Beginning of parser, skips normal beginning
-    -> [Char -> Bool]    -- ^ Characters allowed at the start of a word
-    -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
-    -> (Char -> Bool)    -- ^ Character that separates words
-    -> m [String]
-wordsWithSep' = wordsWithSepG . Just
-
--- | General version of 'wordsWithSep'. Not exported.
-wordsWithSepG :: (MonadParsec e s m, Token s ~ Char)
-    -- | Optional beginning of parser, skips normal beginning
-    => Maybe (m String)
-    -> [Char -> Bool]    -- ^ Characters allowed at the start of a word
-    -> [Char -> Bool]    -- ^ Characters allowed after the start of a word
-    -> (Char -> Bool)    -- ^ Character that separates words
-    -> m [String]
-wordsWithSepG maybeBeg wordStart wordRest wordSep = do
-    let beg = flip fromMaybe maybeBeg $ do
-                    w <- some $ satisfyAny wordStart
-                    r <- many $ satisfyAny wordRest
-                    pure $ w ++ r
-    choice
-        [ try $ do
-            b    <- beg
-            _    <- satisfy wordSep
-            next <- wordsWithSepG Nothing wordStart wordRest wordSep
-            pure $ b : next
-        , (:[]) <$> beg
-        ]
+-- | Parsing of "words" which require a list of predicates for the first
+--   token, and a list of predicates for any remaining tokens. This always
+--   parses at least one token.
+wordAllowed :: Stream s m Char
+    => [Char -> Bool] -- ^ Tokens that start the word
+    -> [Char -> Bool] -- ^ Any subsequent tokens
+    -> ParsecT s u m [Char]
+wordAllowed beg rest = (:) <$> satisfyAny beg <*> many (satisfyAny rest)
 
 -- | Types that can be converted back to a @String@.
 class Printable t where

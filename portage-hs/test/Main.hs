@@ -10,7 +10,8 @@ import qualified Emerge.ParserTests as Emerge
 import qualified Types.ValidityTests as Types
 import qualified Types.UnitTests as Types
 #if defined(GENTOO_TESTS)
---import qualified Emerge.GentooTests as Emerge
+-- import qualified Emerge.GentooTests as Emerge
+-- import qualified PkgDB.GentooTests as PkgDB
 import qualified Types.GentooTests as Types
 #endif
 
@@ -31,7 +32,14 @@ main = do
 #endif
         ]
 
+    let pkgDBTests = [
+#if defined(GENTOO_TESTS)
+--             PkgDB.gentooTests
+#endif
+            ]
+
     defaultMain $ testGroup "portage-hs tests"
         [ testGroup "portage types" typesTests
         , testGroup "emerge" emergeTests
+        , testGroup "pkgdb" pkgDBTests
         ]

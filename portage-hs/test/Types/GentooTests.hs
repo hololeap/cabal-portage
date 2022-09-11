@@ -8,6 +8,7 @@ module Types.GentooTests (gentooTests) where
 import Control.Applicative
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.List
+import Data.Proxy
 import System.Directory
 import System.FilePath.Posix
 import Test.Tasty
@@ -18,7 +19,7 @@ import Data.Parsable
 import Test.Parsable
 
 gentooTests :: IO TestTree
-gentooTests = testGroup "gentoo system tests" <$> sequenceA
+gentooTests = testGroup "strings from live Gentoo system" <$> sequenceA
     [ gentooParseTests "/var/db/repos parse tests" <$> repoTree
     , gentooParseTests "/var/db/pkg parse tests" <$> pkgTree
     ]
@@ -26,24 +27,8 @@ gentooTests = testGroup "gentoo system tests" <$> sequenceA
 -- | Check all package atoms and make sure they are parsed successfully and
 --   pass the "roundtrip" test.
 gentooParseTests :: TestName -> [String] -> TestTree
-gentooParseTests n pkgStrings = testGroup n $ go <$> pkgStrings
-  where
-    go :: String -> TestTree
-    go pkgString = testCase (show pkgString) $ do
-        let pkgE = runParser (checkParsable @Package @Void) "" pkgString
-        case pkgE of
-            Left e ->
-                assertFailure $
-                       "Could not parse string as a Package:\n"
-                    ++ "Input: " ++ show pkgString ++ "\n"
-                    ++ "Error:\n" ++ errorBundlePretty e
-            Right p@(PartialParse _, _) ->
-                assertFailure $
-                       "Got a PartialParse when it should be a CompleteParse:\n"
-                    ++ "Input: " ++ show pkgString ++ "\n"
-                    ++ "Output: " ++ show p ++ "\n"
-            Right (CompleteParse,pkg) ->
-                assertEqual "roundtrip String->Package->String" pkgString (toString pkg)
+gentooParseTests n pkgStrings = testGroup n $
+    parsableHUnit (Proxy @Package) <$> pkgStrings
 
 -- | Scan the entire @/var/db/repos@ tree for ebuilds and form these into
 --  pacakge atoms.

@@ -1,5 +1,7 @@
 {-# Language ApplicativeDo #-}
 {-# Language FlexibleContexts #-}
+{-# Language LambdaCase #-}
+{-# Language OverloadedStrings #-}
 {-# Language ScopedTypeVariables #-}
 {-# Language TypeFamilies #-}
 
@@ -7,38 +9,79 @@ module Internal.Distribution.Portage.Emerge.Parser
     ( emergeParser
     ) where
 
-import Control.Monad.Combinators
-import Data.Maybe
+import Control.Applicative (some)
+-- import Control.Monad.Combinators
+import Data.Coerce
+import Data.Monoid (Last(..))
+-- import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 import Data.Set (Set)
-import Data.Text (Text)
-import Data.Void
+-- import Text.Parsec.Language (haskell)
+-- import Text.Parsec.Token (GenTokenParser(decimal))
+import Text.Read (readMaybe)
 
 import Data.Parsable hiding (space)
 import Internal.Distribution.Portage.Types
 
+-- | Returns a set of packages and the count as reported by the emerge output
+emergeParser :: (Stream s m Char, Parsable Package m u s)
+    => ParsecT s u m (Integer, Set Package)
+emergeParser = do
+    r <- sepEndBy lineParser newline
+    case coerce $ foldMap go r of
+        (Nothing, _) -> fail e
+        (Just i , s) -> pure (i, s)
+  where
+    go :: EmergeLine -> (Last Integer, Set Package)
+    go = coerce . \case
+        PackageLine p -> (Nothing, S.singleton p)
+        TotalLine   i -> (Just i , S.empty      )
+        OtherLine     -> (Nothing, S.empty      )
 
-emergeParser :: Parsec Void Text (Set Package)
-emergeParser
-    = fmap (S.fromList . catMaybes) (sepEndBy lineParser newline)
+    e :: String
+    e = "emerge output contains a package total"
 
-lineParser :: Parsec Void Text (Maybe Package)
-lineParser = Just <$> try packageLine <|> Nothing <$ skipRest
+data EmergeLine
+    = PackageLine Package
+    | TotalLine Integer
+    | OtherLine
+    deriving (Show, Eq, Ord)
 
-packageLine :: Parsec Void Text Package
+
+lineParser :: (Stream s m Char, Parsable Package m u s)
+    => ParsecT s u m EmergeLine
+lineParser = choice
+    [ PackageLine <$> try packageLine
+    , TotalLine   <$> try totalLine
+    , OtherLine   <$  skipRest
+    ]
+
+packageLine :: (Stream s m Char, Parsable Package m u s) => ParsecT s u m Package
 packageLine = do
     _ <- space
-    _ <- single '['
-    _ <- takeWhileP Nothing (\c -> c /= ']' && c /= '\n')
-    _ <- single ']'
+    _ <- char '['
+    _ <- many $ satisfy (\c -> c /= ']' && c /= '\n')
+    _ <- char ']'
     _ <- space
     pkg <- parser
     _ <- space
     _ <- skipRest
     pure pkg
 
-skipRest :: Parsec Void Text ()
-skipRest = void $ takeWhileP Nothing (/= '\n')
+totalLine :: Stream s m Char => ParsecT s u m Integer
+totalLine = do
+    _ <- string "Total:"
+    _ <- space
+    ds <- some digit
+    _ <- space
+    _ <- string "packages"
+    _ <- skipRest
+    case readMaybe ds of
+        Just n  -> pure n
+        Nothing -> fail $ "Could not parse as Integer: " ++ show ds
 
-space :: Parsec Void Text ()
-space = void $ takeWhileP Nothing (\c -> c == ' ' || c == '\t')
+skipRest :: Stream s m Char => ParsecT s u m ()
+skipRest = void $ many $ satisfy (/= '\n')
+
+space :: Stream s m Char => ParsecT s u m ()
+space = void $ many $ satisfy (\c -> c == ' ' || c == '\t')

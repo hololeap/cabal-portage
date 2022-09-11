@@ -6,8 +6,6 @@
 
 module Types.ValidityTests (validityTests) where
 
--- import Control.Monad.STM
--- import Data.Char
 import Data.Either (isLeft)
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NE
@@ -24,19 +22,21 @@ import Internal.Distribution.Portage.Types
 validityTests :: STM TestTree
 validityTests =
     testGroup "parsable validity tests" <$> sequenceA
-        [ parsableTest (Proxy @Category)
-        , parsableTest (Proxy @PkgName)
-        , parsableTest (Proxy @VersionNum)
-        , parsableTest (Proxy @VersionLetter)
-        , parsableTest (Proxy @VersionSuffix)
-        , parsableTest (Proxy @VersionSuffixNum)
-        , parsableTest (Proxy @VersionRevision)
-        , parsableTest (Proxy @Version)
-        , parsableTest (Proxy @Slot)
-        , parsableTest (Proxy @Repository)
-        , parsableTest (Proxy @Package)
-        , parsableTest (Proxy @FauxVersion)
-        , parsableTest (Proxy @FauxVersionNum)
+        [ parsableQuickCheck (Proxy @Category)
+        , parsableQuickCheck (Proxy @PkgName)
+        , parsableQuickCheck (Proxy @VersionNum)
+        , parsableQuickCheck (Proxy @VersionLetter)
+        , parsableQuickCheck (Proxy @VersionSuffix)
+        , parsableQuickCheck (Proxy @VersionSuffixNum)
+        , parsableQuickCheck (Proxy @VersionRevision)
+        , parsableQuickCheck (Proxy @Version)
+        , parsableQuickCheck (Proxy @Slot)
+        , parsableQuickCheck (Proxy @SubSlot)
+        , parsableQuickCheck (Proxy @Repository)
+        , parsableQuickCheck (Proxy @Package)
+        , parsableQuickCheck (Proxy @EBuildFileName)
+        , parsableQuickCheck (Proxy @FauxVersion)
+        , parsableQuickCheck (Proxy @FauxVersionNum)
         ]
 
 -- Arbitrary instances    --
@@ -194,6 +194,11 @@ instance Arbitrary Package where
         <*> liftArbitrary arbitrary
         <*> liftArbitrary arbitrary
 
+instance Arbitrary EBuildFileName where
+    arbitrary = EBuildFileName
+        <$> arbitrary
+        <*> arbitrary
+
 -- Generates version numbers with exactly one component. For use with
 -- FauxVersion.
 instance Arbitrary FauxVersionNum where
@@ -237,7 +242,7 @@ pkgGen
   where
     nonVersion =
         wordGen wordStart wordRest
-            `suchThat` (isLeft . runParsable @Version @Void "")
+            `suchThat` (isLeft . runParsable @Version "")
 
     -- Don't start with @pure ""@ or it will end up creating a string that
     -- starts with @'-'@ (an invalid Package/Repository string)

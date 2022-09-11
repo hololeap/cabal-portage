@@ -5,7 +5,6 @@
 module Types.UnitTests (unitTests) where
 
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.Void
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -167,16 +166,27 @@ unitTests = testGroup "unit tests"
     , testGroup "failed QuickCheck tests"
         [ "7-r2b" `parserTest` Repository "7-r2b"
         , "7-r2b" `parserTest` PkgName "7-r2b"
+        , "1.3.7_p20211111_p1" `parserTest` Version
+                    (VersionNum
+                        (('1':|[]) :| ['3':|[],'7':|[]])
+                    )
+                    Nothing
+                    [ (SuffixP, Just (VersionSuffixNum ('2' :| "0211111")))
+                    , (SuffixP, Just (VersionSuffixNum ('1' :| [])))
+                    ]
+                    Nothing
+        , "p" `parserTest` SuffixP
+
         ]
     ]
 
 -- Takes a string and an expected result, and creates a TestTree from them
 parserTest :: forall a.
-    ( Parsable a (Parsec Void String) String Void
+    ( Parsable a Identity () String
     , Eq a
     , Show a
     ) => String
     -> a
     -> TestTree
 parserTest s x = testCase (show s) $
-    Right (CompleteParse, x) @=? runParser (checkParsable @a @Void) "" s
+    Right (CompleteParse, x) @=? runParser (checkParsable @a) () "" s

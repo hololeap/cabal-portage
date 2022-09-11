@@ -27,6 +27,7 @@ module Internal.Distribution.Portage.Types
     , Slot(..)
     , SubSlot(..)
     , Repository(..)
+    , EBuildFileName (..)
     -- ** Versions
     , Version(..)
     , VersionNum(..)
@@ -39,7 +40,7 @@ module Internal.Distribution.Portage.Types
     , FauxVersionNum(..)
     ) where
 
-import Control.Applicative (Alternative)
+import Control.Applicative (Alternative, some)
 import Data.Data (Data)
 import Data.Function (on)
 import qualified Data.List as L
@@ -56,9 +57,9 @@ newtype Category = Category
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
 
-instance (Token s ~ Char, MonadParsec e s m) => Parsable Category m s e where
+instance Stream s m Char => Parsable Category m u s where
     parserName = "portage category"
-    parser = Category . concat <$> wordsWithSep wordStart wordRest (const False)
+    parser = Category <$> wordAllowed wordStart wordRest
       where
         wordStart =
             [ isAsciiUpper
@@ -77,8 +78,7 @@ newtype PkgName = PkgName
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
 
-instance forall m s e. (Ord e, Token s ~ Char, Stream s, IsString (Tokens s))
-    => Parsable PkgName (ParsecT e s m) s e where
+instance forall m u s. Stream s m Char => Parsable PkgName m u s where
     parserName = "portage package name"
     parser = PkgName <$> pkgParser wordStart wordRest
       where
@@ -102,12 +102,9 @@ instance IsList VersionNum where
 instance Printable VersionNum where
     toString = L.intercalate "." . NE.toList . fmap NE.toList . unwrapVersionNum
 
-instance
-    ( Token s ~ Char
-    , MonadParsec e s m
-    ) => Parsable VersionNum m s e where
+instance Stream s m Char => Parsable VersionNum m u s where
     parserName = "portage version number"
-    parser = versionNumParser (`sepBy1` single '.') (NE.fromList <$>)
+    parser = versionNumParser (`sepBy1` char '.') (NE.fromList <$>)
 
 newtype VersionLetter = VersionLetter
     { unwrapVersionLetter :: Char }
@@ -116,7 +113,7 @@ newtype VersionLetter = VersionLetter
 instance Printable VersionLetter where
     toString (VersionLetter l) = [l]
 
-instance (Token s ~ Char, MonadParsec e s m) => Parsable VersionLetter m s e where
+instance Stream s m Char => Parsable VersionLetter m u s where
     parserName = "portage version letter"
     parser = VersionLetter <$> satisfy isAsciiLower
 
@@ -136,17 +133,13 @@ instance Printable VersionSuffix where
         SuffixRC    -> "rc"
         SuffixP     -> "p"
 
-instance
-    ( Token s ~ Char
-    , IsString (Tokens s)
-    , MonadParsec e s m
-    ) => Parsable VersionSuffix m s e where
+instance Stream s m Char => Parsable VersionSuffix m u s where
     parserName = "portage version suffix"
     parser = choice
-        [ SuffixAlpha <$ string "alpha"
-        , SuffixBeta  <$ string "beta"
-        , SuffixPre   <$ string "pre"
-        , SuffixRC    <$ string "rc"
+        [ SuffixAlpha <$ try (string "alpha")
+        , SuffixBeta  <$ try (string "beta")
+        , SuffixPre   <$ try (string "pre")
+        , SuffixRC    <$ try (string "rc")
         , SuffixP     <$ string "p"
         ]
 
@@ -157,11 +150,7 @@ newtype VersionSuffixNum = VersionSuffixNum
 instance Printable VersionSuffixNum where
     toString = NE.toList . unwrapVersionSuffixNum
 
-instance
-    ( Token s ~ Char
-    , MonadParsec e s m
-    , MonadFail m
-    ) => Parsable VersionSuffixNum m s e where
+instance Stream s m Char => Parsable VersionSuffixNum m u s where
     parserName = "portage version suffix number"
     parser = VersionSuffixNum . NE.fromList <$> some (satisfy isDigit)
 
@@ -172,14 +161,10 @@ newtype VersionRevision = VersionRevision
 instance Printable VersionRevision where
     toString (VersionRevision r) = "r" ++ NE.toList r
 
-instance
-    ( Token s ~ Char
-    , MonadParsec e s m
-    , MonadFail m
-    ) => Parsable VersionRevision m s e where
+instance Stream s m Char => Parsable VersionRevision m u s where
     parserName = "portage version revision"
     parser = do
-        _ <- single 'r'
+        _ <- char 'r'
         VersionRevision . NE.fromList <$> some (satisfy isDigit)
 
 data Version = Version
@@ -212,12 +197,7 @@ instance Printable Version where
       where
         suffixString (ss,sn) = "_" ++ toString ss ++ foldMap toString sn
 
-instance
-    ( Token s ~ Char
-    , IsString (Tokens s)
-    , MonadParsec e s m
-    , MonadFail m
-    ) => Parsable Version m s e where
+instance Stream s m Char => Parsable Version m u s where
     parserName = "portage version"
     parser = versionParser parser
 
@@ -232,23 +212,23 @@ instance Printable Slot where
         =  s
         ++ foldMap (\ss -> "/" ++ toString ss) mss
 
-instance (Token s ~ Char, MonadParsec e s m) => Parsable Slot m s e where
+instance Stream s m Char => Parsable Slot m u s where
     parserName = "portage slot"
     parser = do
         s <- slotParser
-        mss <- optional $ try $ single '/' *> parser
+        mss <- optionMaybe $ try $ char '/' *> parser
         pure $ Slot s mss
 
 newtype SubSlot = SubSlot { unwrapSubSlot :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
 
-instance (Token s ~ Char, MonadParsec e s m) => Parsable SubSlot m s e where
+instance Stream s m Char => Parsable SubSlot m u s where
     parserName = "portage sub-slot"
     parser = SubSlot <$> slotParser
 
-slotParser :: (Token s ~ Char, MonadParsec e s m) => m String
-slotParser = concat <$> wordsWithSep wordStart wordRest (const False)
+slotParser :: Stream s m Char => ParsecT s u m String
+slotParser = wordAllowed wordStart wordRest
   where
     wordStart =
         [ isAsciiUpper
@@ -267,8 +247,7 @@ newtype Repository = Repository { unwrapRepository :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
 
-instance (Token s ~ Char, IsString (Tokens s), MonadParsec e s m, MonadFail m)
-    => Parsable Repository m s e where
+instance Stream s m Char => Parsable Repository m u s where
     parserName = "portage repository"
     parser = Repository <$> pkgParser wordStart wordRest
       where
@@ -299,21 +278,38 @@ instance Printable Package where
         ++ foldMap (\s -> ":"  ++ toString s) ms
         ++ foldMap (\r -> "::" ++ toString r) mr
 
-instance
-    ( Ord e
-    , Token s ~ Char
-    , IsString (Tokens s)
-    , Stream s
-    ) => Parsable Package (ParsecT e s m) s e where
+instance Stream s m Char => Parsable Package m u s where
     parserName = "portage package"
     parser = do
         c <- parser
         _ <- char '/'
         n <- parser
-        v <- optional $ try $ string "-"  *> parser
-        s <- optional $ try $ string ":"  *> parser
-        r <- optional $ try $ string "::" *> parser
+        v <- optionMaybe $ try $ string "-"  *> parser
+        s <- optionMaybe $ try $ string ":"  *> parser
+        r <- optionMaybe $ try $ string "::" *> parser
         pure $ Package c n v s r
+
+data EBuildFileName = EBuildFileName
+    { ebuildName :: PkgName
+    , ebuildVersion :: Version
+    }
+    deriving stock (Show, Eq, Ord, Data, Generic)
+
+instance Printable EBuildFileName where
+    toString (EBuildFileName n v)
+        =  toString n
+        ++ "-"
+        ++ toString v
+        ++ ".ebuild"
+
+instance Stream s m Char => Parsable EBuildFileName m u s  where
+    parserName = "portage ebuild file name"
+    parser = do
+        n <- parser
+        _ <- char '-'
+        v <- parser
+        _ <- string ".ebuild"
+        pure $ EBuildFileName n v
 
 -- | A type of Version that also forms valid PkgName and Repository strings:
 --
@@ -325,12 +321,7 @@ newtype FauxVersion = FauxVersion
     deriving stock (Show, Eq, Ord)
     deriving newtype Printable
 
-instance
-    ( Token s ~ Char
-    , IsString (Tokens s)
-    , MonadParsec e s m
-    , MonadFail m
-    ) => Parsable FauxVersion m s e where
+instance Stream s m Char => Parsable FauxVersion m u s where
     parserName = "faux portage version"
     parser = FauxVersion <$> versionParser (unwrapFauxVersionNum <$> parser)
 
@@ -342,51 +333,44 @@ newtype FauxVersionNum = FauxVersionNum
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype Printable
 
-instance
-    ( Token s ~ Char
-    , MonadParsec e s m
-    ) => Parsable FauxVersionNum m s e where
+instance Stream s m Char => Parsable FauxVersionNum m u s where
     parserName = "faux portage version number"
     parser = FauxVersionNum <$> versionNumParser id pure
 
-versionParser ::
-    ( Token s ~ Char
-    , IsString (Tokens s)
-    , MonadParsec e s m
-    , MonadFail m
-    ) => m VersionNum -> m Version
+versionParser :: Stream s m Char
+    => ParsecT s u m VersionNum -> ParsecT s u m Version
 versionParser pn = do
         n <- pn
-        l <- optional $ try parser
+        l <- optionMaybe $ try parser
         s <- many $ do
             _ <- char '_'
             ss <- parser
-            sn <- optional $ try parser
+            sn <- optionMaybe $ try parser
             pure (ss, sn)
-        r <- optional $ try $ string "-" *> parser
+        r <- optionMaybe $ try $ string "-" *> parser
         pure $ Version n l s r
 
-versionNumParser ::
-    ( Token s ~ Char
-    , MonadParsec e s m
-    ) => (m [Char] -> m [a]) -> (NonEmpty a -> NonEmpty (NonEmpty Char)) -> m VersionNum
+versionNumParser :: Stream s m Char
+    => (ParsecT s u m [Char] -> ParsecT s u m [a])
+    -> (NonEmpty a -> NonEmpty (NonEmpty Char))
+    -> ParsecT s u m VersionNum
 versionNumParser f g = do
     ns <- f $ some $ satisfy isDigit
     pure $ VersionNum $ g $ NE.fromList ns
 
 -- | Both 'PkgName' and 'Repository' have similar parsers
-pkgParser :: forall e s m. (Token s ~ Char, IsString (Tokens s), MonadParsec e s m, MonadFail m)
+pkgParser :: forall s u m. Stream s m Char
     => [Char -> Bool]
     -> [Char -> Bool]
-    -> m String
+    -> ParsecT s u m String
 pkgParser wordStart wordRest = (:) <$> satisfyAny wordStart <*> goOrEnd
   where
-    goOrEnd :: m String
+    goOrEnd :: ParsecT s u m String
     goOrEnd = try go <|> end
 
     -- If 'fauxV' gives back a 'Nothing', it means the wole parse ended with
     -- a Version string and we need to throw the error 'e'.
-    go :: m String
+    go :: ParsecT s u m String
     go = do
         m <- choice
             [ try fauxV
@@ -397,29 +381,29 @@ pkgParser wordStart wordRest = (:) <$> satisfyAny wordStart <*> goOrEnd
     -- Check for a hyphen followed by something that parses as a 'FauxVersion'.
     -- If this is matched, but there isn't a successful 'go' parser after it,
     -- the parser aborts.
-    fauxV :: m (Maybe String)
+    fauxV :: ParsecT s u m (Maybe String)
     fauxV = do
-        h <- single '-'
+        h <- char '-'
         v <- parser @FauxVersion
         choice
-            [ do
+            [ try $ do
                 rest <- go -- Don't accept 'end' as a choice at this point
                 pure $ Just $ h : toString v ++ rest
             , abort
             ]
 
-    nextChar :: m String
+    nextChar :: ParsecT s u m String
     nextChar = do
         c <- satisfyAny wordRest
         rest <- goOrEnd
         pure $ c : rest
 
-    end :: m String
+    end :: ParsecT s u m String
     end = pure ""
 
     -- 'show' is used here to wrap the string in quotes
-    e :: m String
-    e = unexpected $ Label $ NE.fromList $ show $
+    e :: ParsecT s u m String
+    e = fail $
             "ends in a hyphen followed by anything "
             ++ "matching the version syntax"
 

@@ -60,8 +60,10 @@ library
     build-depends:
         , base >=4.13 && <5
         , parsable
+        , mtl >=2.2.2
         , stm >=2.5
         , tasty
+        , tasty-hunit
         , tasty-quickcheck
     hs-source-dirs:   src
     default-language: Haskell2010
