@@ -17,12 +17,11 @@ import System.Directory
 import System.FilePath
 import Test.Tasty
 import Test.Tasty.HUnit
--- import Text.Megaparsec
 
 import Data.Parsable
-import Internal.Distribution.Portage.Types
-import Internal.Distribution.Portage.Emerge
-import Internal.Distribution.Portage.Emerge.Parser
+import Distribution.Portage.Types
+import Distribution.Portage.Emerge
+import Distribution.Portage.Emerge.Parser
 import Test.Parsable
 
 parserTests :: IO TestTree

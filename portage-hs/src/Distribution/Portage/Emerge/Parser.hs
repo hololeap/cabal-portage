@@ -5,7 +5,7 @@
 {-# Language ScopedTypeVariables #-}
 {-# Language TypeFamilies #-}
 
-module Internal.Distribution.Portage.Emerge.Parser
+module Distribution.Portage.Emerge.Parser
     ( emergeParser
     ) where
 
@@ -21,7 +21,7 @@ import Data.Set (Set)
 import Text.Read (readMaybe)
 
 import Data.Parsable hiding (space)
-import Internal.Distribution.Portage.Types
+import Distribution.Portage.Types
 
 -- | Returns a set of packages and the count as reported by the emerge output
 emergeParser :: (Stream s m Char, Parsable Package m u s)

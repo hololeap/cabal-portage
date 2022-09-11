@@ -1,6 +1,6 @@
 
 
-module Internal.Distribution.Portage.Emerge
+module Distribution.Portage.Emerge
     ( EmergeArgs
     , StdOut
     , StdErr
@@ -18,7 +18,7 @@ import System.Exit
 import System.Process
 
 import Data.Parsable
-import Internal.Distribution.Portage.Types
+import Distribution.Portage.Types
 
 type EmergeArgs = [String]
 type StdOut = Text

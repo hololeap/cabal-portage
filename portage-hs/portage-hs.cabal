@@ -61,19 +61,15 @@ library
     import: all
     exposed-modules:
         , Distribution.Portage.Types
+        , Distribution.Portage.PkgDb
+        , Distribution.Portage.PkgDb.Contents
+        , Distribution.Portage.Emerge
+        , Distribution.Portage.Emerge.Parser
 
     other-extensions: NoImplicitPrelude
     build-depends:    portage-hs-internal
-    hs-source-dirs:   src-exposed
+    hs-source-dirs:   src
     default-language: Haskell2010
-
-library portage-hs-internal
-    import: all
-    exposed-modules:
-        , Internal.Distribution.Portage.Types
-        , Internal.Distribution.Portage.PkgDB
-        , Internal.Distribution.Portage.Emerge
-        , Internal.Distribution.Portage.Emerge.Parser
 
     build-depends:
         , base >=4.13 && <5
@@ -85,7 +81,16 @@ library portage-hs-internal
         , text
         , transformers
         , parsable
-    hs-source-dirs:   src
+
+library portage-hs-internal
+    import: all
+    exposed-modules:
+        , Internal.Distribution.Portage.Types
+
+    build-depends:
+        , base
+        , parsable
+    hs-source-dirs:   src-internal
     default-language: Haskell2010
 
 test-suite portage-hs-test
@@ -103,6 +108,7 @@ test-suite portage-hs-test
         , containers
         , directory
         , filepath
+        , portage-hs
         , portage-hs-internal
         , parsable
         , parsable-test
@@ -119,5 +125,5 @@ test-suite portage-hs-test
             -DGENTOO_TESTS
         other-modules:
             , Emerge.GentooTests
-            , PkgDB.GentooTests
+            , PkgDb.GentooTests
             , Types.GentooTests

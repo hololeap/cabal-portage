@@ -1,9 +1,9 @@
 
-module PkgDB.GentooTests
+module PkgDb.GentooTests
     ( gentooTests
     ) where
 
-import Internal.Distribution.Portage.PkgDB
+import Distribution.Portage.PkgDb
 
 import Test.Tasty
 import Test.Tasty.HUnit

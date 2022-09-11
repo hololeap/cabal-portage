@@ -3,7 +3,7 @@
 
 {-# Options_GHC -Wno-deprecations #-}
 
-module Internal.Distribution.Portage.PkgDB
+module Distribution.Portage.PkgDb
     ( PkgDbEntry(..)
     , pkgDbDirectory
     , pkgDbEntries
@@ -19,7 +19,7 @@ import System.Directory
 import System.FilePath.Posix
 
 import Data.Parsable
-import Internal.Distribution.Portage.Types
+import Distribution.Portage.Types
 
 data PkgDbEntry = PkgDbEntry
     { pkgDbEntryPackage :: Package

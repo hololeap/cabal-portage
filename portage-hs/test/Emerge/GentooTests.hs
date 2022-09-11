@@ -6,7 +6,7 @@ import qualified Data.Text.IO as T
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Internal.Distribution.Portage.Emerge
+import Distribution.Portage.Emerge
 
 gentooTests :: TestTree
 gentooTests = testGroup "gentoo system tests"
