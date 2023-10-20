@@ -27,7 +27,7 @@ module Internal.Distribution.Portage.Types
     , Slot(..)
     , SubSlot(..)
     , Repository(..)
-    , EBuildFileName (..)
+--     , EBuildFileName (..)
     -- ** Versions
     , Version(..)
     , VersionNum(..)
@@ -289,27 +289,27 @@ instance Stream s m Char => Parsable Package m u s where
         r <- optionMaybe $ try $ string "::" *> parser
         pure $ Package c n v s r
 
-data EBuildFileName = EBuildFileName
-    { ebuildName :: PkgName
-    , ebuildVersion :: Version
-    }
-    deriving stock (Show, Eq, Ord, Data, Generic)
-
-instance Printable EBuildFileName where
-    toString (EBuildFileName n v)
-        =  toString n
-        ++ "-"
-        ++ toString v
-        ++ ".ebuild"
-
-instance Stream s m Char => Parsable EBuildFileName m u s  where
-    parserName = "portage ebuild file name"
-    parser = do
-        n <- parser
-        _ <- char '-'
-        v <- parser
-        _ <- string ".ebuild"
-        pure $ EBuildFileName n v
+-- data EBuildFileName = EBuildFileName
+--     { ebuildName :: PkgName
+--     , ebuildVersion :: Version
+--     }
+--     deriving stock (Show, Eq, Ord, Data, Generic)
+--
+-- instance Printable EBuildFileName where
+--     toString (EBuildFileName n v)
+--         =  toString n
+--         ++ "-"
+--         ++ toString v
+--         ++ ".ebuild"
+--
+-- instance Stream s m Char => Parsable EBuildFileName m u s  where
+--     parserName = "portage ebuild file name"
+--     parser = do
+--         n <- parser
+--         _ <- char '-'
+--         v <- parser
+--         _ <- string ".ebuild"
+--         pure $ EBuildFileName n v
 
 -- | A type of Version that also forms valid PkgName and Repository strings:
 --

@@ -176,7 +176,16 @@ unitTests = testGroup "unit tests"
                     ]
                     Nothing
         , "p" `parserTest` SuffixP
-
+--         , "7-r4-8y-r3-o-7-r0-a-4.ebuild" `parserTest` EBuildFileName
+--                     (PkgName "7-r4-8y-r3-o-7-r0-a")
+--                     (Version
+--                         (VersionNum
+--                             (('4' :| "") :| [])
+--                         )
+--                         Nothing
+--                         []
+--                         Nothing
+--                     )
         ]
     ]
 

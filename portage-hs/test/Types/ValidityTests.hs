@@ -34,7 +34,7 @@ validityTests =
         , parsableQuickCheck (Proxy @SubSlot)
         , parsableQuickCheck (Proxy @Repository)
         , parsableQuickCheck (Proxy @Package)
-        , parsableQuickCheck (Proxy @EBuildFileName)
+--         , parsableQuickCheck (Proxy @EBuildFileName)
         , parsableQuickCheck (Proxy @FauxVersion)
         , parsableQuickCheck (Proxy @FauxVersionNum)
         ]
@@ -194,10 +194,10 @@ instance Arbitrary Package where
         <*> liftArbitrary arbitrary
         <*> liftArbitrary arbitrary
 
-instance Arbitrary EBuildFileName where
-    arbitrary = EBuildFileName
-        <$> arbitrary
-        <*> arbitrary
+-- instance Arbitrary EBuildFileName where
+--     arbitrary = EBuildFileName
+--         <$> arbitrary
+--         <*> arbitrary
 
 -- Generates version numbers with exactly one component. For use with
 -- FauxVersion.
