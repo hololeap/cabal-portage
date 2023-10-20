@@ -3,7 +3,7 @@ name:               portage-hs
 version:            0.1.0.0
 synopsis:           Data structures and functions for interacting with the Portage package manager
 
-tested-with:        GHC == { 8.8.4, 8.10.7, 9.0.2, 9.2.2 }
+tested-with:        GHC == { 9.0.2, 9.2.8, 9.4.6 }
 
 description:
     Currently, this includes:
@@ -16,18 +16,20 @@ description:
 homepage:           https://github.com/hololeap/cabal-portage/tree/main/portage-hs
 bug-reports:        https://github.com/hololeap/cabal-portage/issues
 
-license:            BSD-2-Clause
+license:            AGPL-3.0-only
 license-file:       LICENSE
 author:             hololeap
-maintainer:         hololeap@users.noreply.github.com
+maintainer:         hololeap@protonmail.com
 
-copyright:          Copyright (C) 2022 hololeap
+copyright:          Copyright (C) 2022-2023 hololeap
 category:           System
-extra-source-files: CHANGELOG.md
+extra-doc-files: CHANGELOG.md
 
 source-repository head
     type:           git
-    location:       https://github.com/hololeap/cabal-portage/tree/main/portage-hs
+    location:       git://github.com/hololeap/cabal-portage.git
+    branch:         main
+    subdir:         portage-hs
 
 flag gentoo-tests
     description: Enable tests that depend on a working Gentoo environment
@@ -65,7 +67,7 @@ library
     default-language: Haskell2010
 
     build-depends:
-        , base >=4.13 && <5
+        , base >=4.13 && <4.18
         , containers
         , directory
         , filepath

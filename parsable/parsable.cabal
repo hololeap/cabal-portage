@@ -3,25 +3,31 @@ name:               parsable
 version:            0.1.0.0
 synopsis:           Parsable and Printable classes
 
-tested-with:        GHC == { 8.8.4, 8.10.7, 9.0.2, 9.2.2 }
+tested-with:        GHC == { 9.0.2, 9.2.8, 9.4.6 }
 
--- description:
+description:
+    Provides the Parsable and Printable classes, which form a round-trip
+    equivalence between a data type and a String. Useful for types that
+    are generated directly from a String and need their internal
+    representation to be converted back to a String.
+
 homepage:           https://github.com/hololeap/cabal-portage/tree/main/parsable
 bug-reports:        https://github.com/hololeap/cabal-portage/issues
 
-license:            BSD-2-Clause
+license:            AGPL-3.0-only
 license-file:       LICENSE
 author:             hololeap
-maintainer:         hololeap@users.noreply.github.com
+maintainer:         hololeap@protonmail.com
 
-copyright:          Copyright (C) 2022 hololeap
+copyright:          Copyright (C) 2022-2023 hololeap
 category:           Text
-extra-source-files: CHANGELOG.md
+extra-doc-files: CHANGELOG.md
 
 source-repository head
     type:           git
-    location:       https://github.com/hololeap/cabal-portage/tree/main/parsable-hs
+    location:       git://github.com/hololeap/cabal-portage.git
     branch:         main
+    subdir:         parsable
 
 flag pedantic
     description: Enable -Werror
