@@ -248,7 +248,8 @@ pkgGen
     -- starts with @'-'@ (an invalid Package/Repository string)
     startChoices =
         [ nonVersion
-        , toString . unwrapFauxVersion <$> arbitrary
+--         Currently not behaving correctly; we're getting invalid package/repository names
+--         , toString . unwrapFauxVersion <$> arbitrary
         ]
 
     restChoices = pure "" : startChoices
