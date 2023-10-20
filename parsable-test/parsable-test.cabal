@@ -29,22 +29,8 @@ flag verbose-tests
     manual:      True
 
 common all
-    ghc-options:        -Weverything
-                        -Wno-missing-exported-signatures
-                        -Wno-missing-import-lists
-                        -Wno-missed-specialisations
-                        -Wno-all-missed-specialisations
-                        -Wno-unsafe
-                        -Wno-safe
-                        -Wno-missing-local-signatures
-                        -Wno-implicit-prelude
-                        -Wno-missing-deriving-strategies
+    ghc-options:        -Wall
                         -foptimal-applicative-do
-    if impl(ghc >= 8.10)
-        ghc-options:    -Wno-missing-safe-haskell-mode
-                        -Wno-prepositive-qualified-module
-    if impl(ghc >= 9.2)
-        ghc-options:    -Wno-missing-kind-signatures
     if flag(pedantic)
         ghc-options:    -Werror
 
