@@ -37,8 +37,8 @@ module Test.Parsable
     ) where
 
 import Control.Monad.STM
-import Control.Monad.Except
 import Control.Concurrent.STM.TChan
+import Data.Function (fix)
 import Data.Semigroup (Last(..))
 import Data.Typeable
 import Data.Void
