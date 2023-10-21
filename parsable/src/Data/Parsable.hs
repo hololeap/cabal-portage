@@ -7,16 +7,6 @@ There is an implicit "soft isomorphism" between 'parser' and 'toString'.
 (Successfully parsing a string and then running 'toString' on the result
 should result in the original string.)
 
-Data returned from 'parser' must be wrapped inside 'ParseResult'. This can
-be done easily with the 'checkCoverage' function.
-
-For instance:
-
-> parser = checkCoverage $ count 5 anyChar
-
-Note that 'runParseResult' will throw an error if no 'ParseCoverage' has
-been written (e.g. only functions like 'pure', 'lift', etc. have been called).
-
 === Language extensions
 
 Because 'parser' does not take any arguments, it may be necessary
