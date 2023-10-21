@@ -94,6 +94,7 @@ library portage-hs-internal
 
     build-depends:
         , base
+        , hashable
         , parsable
     hs-source-dirs:   src-internal
     default-language: Haskell2010
