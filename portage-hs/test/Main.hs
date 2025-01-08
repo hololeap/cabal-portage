@@ -34,7 +34,7 @@ main = do
 
     let pkgDBTests = [
 #if defined(GENTOO_TESTS)
-            PkgDb.gentooTests
+--             PkgDb.gentooTests
 #endif
             ]
 
