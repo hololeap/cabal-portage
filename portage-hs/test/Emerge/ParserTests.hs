@@ -1,15 +1,11 @@
 {-# Language LambdaCase #-}
-{-# Language ScopedTypeVariables #-}
-
-{-# Options_GHC -Wno-deprecations #-} -- Don't nag me about ListT
+{-# Language TupleSections #-}
 
 module Emerge.ParserTests
     ( parserTests
     ) where
 
-import Control.Monad
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.List
+import Conduit
 import Data.Set (Set)
 import qualified Data.Set as S
 import qualified Data.Text.IO as T
@@ -23,6 +19,8 @@ import Distribution.Portage.Types
 import Distribution.Portage.Emerge
 import Distribution.Portage.Emerge.Parser
 import Test.Parsable
+
+import Paths_portage_hs (getDataFileName)
 
 parserTests :: IO TestTree
 parserTests = do
@@ -61,15 +59,17 @@ stdoutTest d o =
     f = "test" </> "data" </> d </> "emerge-world-test.stdout"
 
 emergeStdOuts :: IO [(FilePath, StdOut)]
-emergeStdOuts = runListT $ do
-    projectDir <- lift $ getCurrentDirectory >>= canonicalizePath
-    let dataDir = projectDir </> "test" </> "data"
+emergeStdOuts = do
+    dataDir <- getDataFileName ("test" </> "data") >>= canonicalizePath
+    runConduitRes
+        $  sourceDirectoryDeep False dataDir
+        .| filterC (\f -> takeFileName f == validFile)
+        .| (await >>= mapM_ readFileC)
+        .| sinkList
+  where
+    validFile = "emerge-world-test" <.> "stdout"
 
-    d <- ListT $ listDirectory dataDir
-    f <- ListT $ listDirectory $ dataDir </> d
-
-    guard $ f == "emerge-world-test.stdout"
-
-    o <- lift $ T.readFile $ dataDir </> d </> f
-
-    pure (d, o)
+    readFileC :: FilePath -> ConduitT i (FilePath, StdOut) (ResourceT IO) ()
+    readFileC f = do
+        o <- liftIO $ T.readFile f
+        yield (f, o)

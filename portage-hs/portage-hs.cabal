@@ -25,6 +25,9 @@ copyright:          Copyright (C) 2022-2025 hololeap
 category:           System
 extra-doc-files: CHANGELOG.md
 
+extra-source-files:
+    test/data/**/*.stdout
+
 source-repository head
     type:           git
     location:       https://github.com/hololeap/cabal-portage.git
@@ -123,12 +126,16 @@ test-suite portage-hs-test
         , Emerge.ParserTests
         , Types.ValidityTests
         , Types.UnitTests
+        , Paths_portage_hs
+    autogen-modules:
+        , Paths_portage_hs
     build-depends:
         , parsable <0.2
         , parsable-test <0.2
         , portage-hs <0.2
         , portage-hs-internal <0.2
         , base >=4.13 && <5
+        , conduit <1.4
         , containers <0.8
         , directory <1.4
         , filepath <1.6
