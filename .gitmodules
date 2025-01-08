@@ -1,3 +1,0 @@
-[submodule "cabal"]
-	path = cabal-portage/cabal
-	url = https://github.com/hololeap/cabal
