@@ -21,13 +21,13 @@ license-file:       LICENSE
 author:             hololeap
 maintainer:         hololeap@protonmail.com
 
-copyright:          Copyright (C) 2022-2023 hololeap
+copyright:          Copyright (C) 2022-2025 hololeap
 category:           System
 extra-doc-files: CHANGELOG.md
 
 source-repository head
     type:           git
-    location:       git://github.com/hololeap/cabal-portage.git
+    location:       https://github.com/hololeap/cabal-portage.git
     branch:         main
     subdir:         portage-hs
 
@@ -67,16 +67,16 @@ library
     default-language: Haskell2010
 
     build-depends:
-        , base >=4.13 && <4.18
-        , containers
-        , directory
-        , filepath
-        , mtl
-        , process
-        , text
-        , transformers
-        , parsable
-        , portage-hs-internal
+        , base >=4.13 && <5
+        , containers <0.8
+        , directory <1.4
+        , filepath <1.6
+        , mtl <2.4
+        , process <1.7
+        , text <2.2
+        , transformers <0.7
+        , parsable <0.2
+        , portage-hs-internal <0.2
 
     other-extensions:
         , ApplicativeDo
@@ -93,9 +93,9 @@ library portage-hs-internal
         , Internal.Distribution.Portage.Types
 
     build-depends:
-        , base
-        , hashable
-        , parsable
+        , base >=4.13 && <5
+        , hashable <1.6
+        , parsable <0.2
     hs-source-dirs:   src-internal
     default-language: Haskell2010
     other-extensions:
@@ -124,19 +124,19 @@ test-suite portage-hs-test
         , Types.ValidityTests
         , Types.UnitTests
     build-depends:
-        , base
-        , containers
-        , directory
-        , filepath
-        , portage-hs
-        , portage-hs-internal
-        , parsable
-        , parsable-test
-        , QuickCheck
-        , tasty
-        , tasty-hunit
-        , text
-        , transformers
+        , parsable <0.2
+        , parsable-test <0.2
+        , portage-hs <0.2
+        , portage-hs-internal <0.2
+        , base >=4.13 && <5
+        , containers <0.8
+        , directory <1.4
+        , filepath <1.6
+        , QuickCheck <2.16
+        , tasty <1.6
+        , tasty-hunit <0.11
+        , text <2.2
+        , transformers <0.7
 
     other-extensions:
         , CPP
