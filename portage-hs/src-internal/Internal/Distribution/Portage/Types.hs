@@ -36,6 +36,12 @@ module Internal.Distribution.Portage.Types
     , VersionSuffix(..)
     , VersionSuffixNum(..)
     , VersionRevision(..)
+    -- ** Constraints
+    , ConstrainedDep(..)
+    , toConstrainedDep
+    , fromConstrainedDep
+    , doesConstraintMatch
+    , Operator(..)
     -- * Internal
     , FauxVersion(..)
     , FauxVersionNum(..)
@@ -210,6 +216,113 @@ instance Printable Version where
 instance Stream s m Char => Parsable Version m u s where
     parserName = "portage version"
     parser = versionParser parser
+
+data Operator
+    = Lesser
+    | LesserOrEqual
+    | Equal
+    | EqualAsterisk
+    | EqualIgnoreRevision
+    | GreaterOrEqual
+    | Greater
+    deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
+    deriving anyclass Hashable
+
+data ConstrainedDep = ConstrainedDep
+    { constrainedOperator   :: Operator
+    , constrainedCategory   :: Category
+    , constrainedPkgName    :: PkgName
+    , constrainedVersion    :: Version
+    , constrainedSlot       :: Maybe Slot
+    , constrainedRepository :: Maybe Repository
+    } deriving stock (Show, Eq, Ord, Data, Generic)
+      deriving anyclass Hashable
+
+instance Printable ConstrainedDep where
+    toString (ConstrainedDep o c n v ms mr)
+        =  operStr
+        ++ toString c
+        ++ "/"
+        ++ toString n
+        ++ "-"
+        ++ toString v
+        ++ asterisk
+        ++ foldMap (\s -> ":"  ++ toString s) ms
+        ++ foldMap (\r -> "::" ++ toString r) mr
+      where
+        asterisk = case o of
+            EqualAsterisk -> "*"
+            _ -> ""
+
+        operStr :: String
+        operStr = case o of
+            Lesser -> "<"
+            LesserOrEqual -> "<="
+            Greater -> ">"
+            GreaterOrEqual -> ">="
+            Equal -> "="
+            EqualAsterisk -> "="
+            EqualIgnoreRevision -> "~"
+
+instance Stream s m Char => Parsable ConstrainedDep m u s where
+    parserName = "portage package with version constraint"
+    parser = do
+        o <- operParser
+        c <- parser
+        _ <- char '/'
+        n <- parser
+        _ <- char '-'
+        v <- parser
+        o' <- option o $ try $ case o of
+            Equal -> EqualAsterisk <$ char '*'
+            _ -> char '*' *> fail "Unexpected asterisk (not Equal operator)"
+        s <- optionMaybe $ try $ string ":"  *> parser
+        r <- optionMaybe $ try $ string "::" *> parser
+        pure $ ConstrainedDep o' c n v s r
+      where
+        operParser = choice
+            [ char '>' *> option Greater (try (GreaterOrEqual <$ char '='))
+            , char '<' *> option Lesser (try (LesserOrEqual <$ char '='))
+            , Equal <$ char '='
+            , EqualIgnoreRevision <$ char '~'
+            ]
+
+toConstrainedDep :: Operator -> Package -> Maybe ConstrainedDep
+toConstrainedDep o (Package c n mv ms mr) =
+    (\v -> ConstrainedDep o c n v ms mr) <$> mv
+
+fromConstrainedDep :: ConstrainedDep -> Package
+fromConstrainedDep (ConstrainedDep _ c p v ms mr) =
+    Package c p (Just v) ms mr
+
+doesConstraintMatch :: ConstrainedDep -> Package -> Bool
+doesConstraintMatch cp p
+    | constrainedCategory cp /= getCategory p = False
+    | constrainedPkgName cp /= getPkgName p = False
+    | constrainedSlot cp /= getSlot p = False
+    | constrainedRepository cp /= getRepository p = False
+    | otherwise = case getVersion p of
+        Nothing -> False
+        Just v ->
+            let cv = constrainedVersion cp
+            in case constrainedOperator cp of
+                Lesser -> v < cv
+                LesserOrEqual -> v <= cv
+                Equal -> v == cv
+                GreaterOrEqual -> v >= cv
+                Greater -> v > cv
+                EqualIgnoreRevision ->
+                    v { getVersionRevision = Nothing }
+                        == cv { getVersionRevision = Nothing }
+                EqualAsterisk ->
+                    checkEqAst
+                        (toList (getVersionNum cv))
+                        (toList (getVersionNum v))
+  where
+    checkEqAst [] [] = True
+    checkEqAst (_cv:_cvs) [] = False
+    checkEqAst [] (_v:_vs) = True
+    checkEqAst (cv:cvs) (v:vs) = cv == v && checkEqAst cvs vs
 
 data Slot = Slot
     { unwrapSlot :: String

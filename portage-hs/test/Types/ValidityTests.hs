@@ -30,6 +30,8 @@ validityTests =
         , parsableQuickCheck (Proxy @VersionSuffixNum)
         , parsableQuickCheck (Proxy @VersionRevision)
         , parsableQuickCheck (Proxy @Version)
+--         , parsableQuickCheck (Proxy @Operator)
+        , parsableQuickCheck (Proxy @ConstrainedDep)
         , parsableQuickCheck (Proxy @Slot)
         , parsableQuickCheck (Proxy @SubSlot)
         , parsableQuickCheck (Proxy @Repository)
@@ -183,6 +185,18 @@ instance Arbitrary Version where
         <$> arbitrary
         <*> liftArbitrary arbitrary
         <*> liftArbitrary (liftArbitrary arbitrary)
+        <*> liftArbitrary arbitrary
+
+instance Arbitrary Operator where
+    arbitrary = arbitraryBoundedEnum
+
+instance Arbitrary ConstrainedDep where
+    arbitrary = ConstrainedDep
+        <$> arbitrary
+        <*> arbitrary
+        <*> arbitrary
+        <*> arbitrary
+        <*> liftArbitrary arbitrary
         <*> liftArbitrary arbitrary
 
 -- The composite of an entire package atom

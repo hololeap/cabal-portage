@@ -13,6 +13,7 @@ module Distribution.Portage.Types
     , Category(..)
     , PkgName(..)
     , Slot(..)
+    , SubSlot(..)
     , Repository(..)
     -- ** Versions
     , Version(..)
@@ -21,6 +22,15 @@ module Distribution.Portage.Types
     , VersionSuffix(..)
     , VersionSuffixNum(..)
     , VersionRevision(..)
+    -- ** Constraints
+    , ConstrainedDep(..)
+    , toConstrainedDep
+    , fromConstrainedDep
+    , doesConstraintMatch
+    , Operator(..)
+    -- * Internal
+    , FauxVersion(..)
+    , FauxVersionNum(..)
     ) where
 
 import Internal.Distribution.Portage.Types

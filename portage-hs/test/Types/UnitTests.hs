@@ -72,6 +72,19 @@ unitTests = testGroup "unit tests"
                 ))
                 (Just (Slot "1337" Nothing))
                 (Just (Repository "uberRepo"))
+        , "=dev-python/nose-1.23*:1337::uberRepo" `parserTest`
+            ConstrainedDep
+                EqualAsterisk
+                (Category "dev-python")
+                (PkgName "nose")
+                (Version
+                    (VersionNum (('1':|[]):|['2':|"3"]))
+                    Nothing
+                    []
+                    Nothing
+                )
+                (Just (Slot "1337" Nothing))
+                (Just (Repository "uberRepo"))
         ]
     , testGroup "tricky tests"
         [ "dev-python/nose-1.3.7_p20211111_p1" `parserTest`
