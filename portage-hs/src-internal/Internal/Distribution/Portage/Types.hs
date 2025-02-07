@@ -102,8 +102,34 @@ instance forall m u s. Stream s m Char => Parsable PkgName m u s where
 
 newtype VersionNum = VersionNum
     { unwrapVersionNum :: NonEmpty (NonEmpty Char) }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Eq, Data, Generic)
     deriving anyclass Hashable
+
+-- See section 3.3 "Version Comparison" of the Package Manager Specification
+instance Ord VersionNum where
+    VersionNum (s1 :| ss1) `compare` VersionNum (s2 :| ss2)
+        = toNat s1 `compare` toNat s2 -- Algorithm 3.2
+            <> mconcat ((zipWith compRest `on` fmap trim) ss1 ss2) -- Algorithm 3.3
+            <> length ss1 `compare` length ss2
+      where
+        compRest :: (Bool, NonEmpty Char) -> (Bool, NonEmpty Char) -> Ordering
+        -- Neither side had a leading zero so we use numeric comparison
+        compRest (False, c1) (False, c2) = toNat c1 `compare` toNat c2
+        -- At least one side a had leading zero so we use string comparison
+        compRest (_    , c1) (_    , c2) =       c1 `compare`       c2
+
+        -- If a component starts with a '0', mark it True and remove any
+        -- trailing 0s
+        trim :: NonEmpty Char -> (Bool, NonEmpty Char)
+        trim = \case
+            ('0' :| xs) -> (True, '0' :| foldr skipTrailing0s [] xs)
+            xs -> (False, xs)
+          where
+            skipTrailing0s '0' [] = []
+            skipTrailing0s c cs = c:cs
+
+        toNat :: NonEmpty Char -> Natural
+        toNat = read . toList
 
 instance IsList VersionNum where
     type instance Item VersionNum = NonEmpty Char
@@ -190,6 +216,7 @@ data Version = Version
     } deriving stock (Show, Eq, Data, Generic)
     deriving anyclass Hashable
 
+-- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord Version where
     Version n1 l1 s1 r1 `compare` Version n2 l2 s2 r2
         =  n1 `compare` n2
@@ -197,10 +224,19 @@ instance Ord Version where
         <> s1 `compareSuffixes` s2
         <> r1 `compareRevisions` r2
       where
-        compareSuffixes x y = case (null x, null y) of
-            (True, False) -> GT -- Empty list of suffixes is greater than non-empty list
-            (False, True) -> LT -- non-empty list of suffixes is less than empty list
-            _             -> L.sort x `compare` L.sort y
+        -- Algorithm 3.5
+        compareSuffixes [] [] = EQ
+        compareSuffixes ((SuffixP,_):_) [] = GT
+        compareSuffixes ((_,_):_) [] = LT
+        compareSuffixes [] ((SuffixP,_):_) = LT
+        compareSuffixes [] ((_,_):_) = GT
+        compareSuffixes (u1:us1) (u2:us2) =
+            (compare `on` fmap toNat) u1 u2
+                <> us1 `compareSuffixes` us2
+          where
+            toNat :: Maybe VersionSuffixNum -> Natural
+            toNat = maybe (0 :: Natural) (read . toList . unwrapVersionSuffixNum)
+
         compareRevisions = compare `on`
             maybe (0 :: Natural) (read . NE.toList . unwrapVersionRevision)
 
