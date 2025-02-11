@@ -10,21 +10,23 @@ description:
     the round-trip assurances of types with both Parsable and Printable
     instances.
 
-homepage:           https://github.com/hololeap/cabal-portage/tree/main/parsable-test
-bug-reports:        https://github.com/hololeap/cabal-portage/issues
+homepage:           https://github.com/gentoo-haskell/cabal-portage/tree/main/parsable-test
+bug-reports:        https://github.com/gentoo-haskell/cabal-portage/issues
 
 license:            AGPL-3.0-only
 license-file:       LICENSE
-author:             hololeap
+author:             Gentoo Authors
 maintainer:         hololeap@protonmail.com
 
-copyright:          Copyright (C) 2022-2025 hololeap
+copyright:          Copyright (C) 2022-2025 Gentoo Authors
 category:           Testing
-extra-doc-files: CHANGELOG.md
+extra-doc-files:
+    , CHANGELOG.md
+    , README.md
 
 source-repository head
     type:           git
-    location:       https://github.com/hololeap/cabal-portage.git
+    location:       https://github.com/gentoo-haskell/cabal-portage.git
     branch:         main
     subdir:         parsable-test
 
@@ -54,7 +56,7 @@ library
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        , base >=4.13 && <5
+        , base >=4.13 && <4.22
         , parsable <0.2
         , mtl >=2.2.2 && <2.4
         , stm >=2.5 && <2.6

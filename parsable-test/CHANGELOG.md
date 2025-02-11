@@ -1,5 +1,5 @@
-# Revision history for parsable-test
+## parsable-test-0.1.0.0 (2025-02-11)
 
-## 0.1.0.0 -- YYYY-mm-dd
+Release 0.1.0.0
 
-* First version. Released on an unsuspecting world.
+- Initial release

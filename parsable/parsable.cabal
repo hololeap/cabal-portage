@@ -11,21 +11,23 @@ description:
     are generated directly from a String and need their internal
     representation to be converted back to a String.
 
-homepage:           https://github.com/hololeap/cabal-portage/tree/main/parsable
-bug-reports:        https://github.com/hololeap/cabal-portage/issues
+homepage:           https://github.com/gentoo-haskell/cabal-portage/tree/main/parsable
+bug-reports:        https://github.com/gentoo-haskell/cabal-portage/issues
 
 license:            AGPL-3.0-only
 license-file:       LICENSE
-author:             hololeap
+author:             Gentoo Authors
 maintainer:         hololeap@protonmail.com
 
-copyright:          Copyright (C) 2022-2025 hololeap
+copyright:          Copyright (C) 2022-2025 Gentoo Authors
 category:           Text
-extra-doc-files: CHANGELOG.md
+extra-doc-files:
+    , CHANGELOG.md
+    , README.md
 
 source-repository head
     type:           git
-    location:       https://github.com/hololeap/cabal-portage.git
+    location:       https://github.com/gentoo-haskell/cabal-portage.git
     branch:         main
     subdir:         parsable
 
@@ -55,7 +57,7 @@ library
         , TypeFamilies
 
     build-depends:
-        , base >=4.13 && <5
+        , base >=4.13 && <4.22
         , parsec <3.2
         , transformers <0.7
         , text <2.2
