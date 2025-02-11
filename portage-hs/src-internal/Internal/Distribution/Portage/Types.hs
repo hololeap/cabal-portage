@@ -331,17 +331,21 @@ fromConstrainedDep :: ConstrainedDep -> Package
 fromConstrainedDep (ConstrainedDep _ c p v ms mr) =
     Package c p (Just v) ms mr
 
+-- | Uses "optimistic" matching, meaning: if a package does not provide
+--   information that the constraint requires, it is assumed to be a match.
+--
+--   For example, the constraint @<dev-haskell/text-2.2:0::haskell@ matches
+--   @dev-haskell/text@ but not @dev-haskell/text-2.3@.
 doesConstraintMatch :: ConstrainedDep -> Package -> Bool
-doesConstraintMatch cp p
-    | constrainedCategory cp /= getCategory p = False
-    | constrainedPkgName cp /= getPkgName p = False
-    | constrainedSlot cp /= getSlot p = False
-    | constrainedRepository cp /= getRepository p = False
-    | otherwise = case getVersion p of
-        Nothing -> False
-        Just v ->
-            let cv = constrainedVersion cp
-            in case constrainedOperator cp of
+doesConstraintMatch (ConstrainedDep co cc cn cv cs cr) (Package pc pn pv ps pr)
+    | cc /= pc = False
+    | cn /= pn = False
+    | otherwise
+        =  checkConstrained cs ps
+        && checkConstrained cr pr
+        && case pv of
+            Nothing -> True -- No version info on the package means it matches
+            Just v -> case co of
                 Lesser -> v < cv
                 LesserOrEqual -> v <= cv
                 Equal -> v == cv
@@ -358,7 +362,14 @@ doesConstraintMatch cp p
     checkEqAst [] [] = True
     checkEqAst (_cv:_cvs) [] = False
     checkEqAst [] (_v:_vs) = True
-    checkEqAst (cv:cvs) (v:vs) = cv == v && checkEqAst cvs vs
+    checkEqAst (cv':cvs) (v:vs) = cv' == v && checkEqAst cvs vs
+
+    checkConstrained :: Eq a => Maybe a -> Maybe a -> Bool
+    checkConstrained m1 m2 = case (m1, m2) of
+        -- Constraint specifies, package provides
+        (Just x1, Just x2) -> x1 == x2
+        -- Package does not specifiy
+        _ -> True
 
 data Slot = Slot
     { unwrapSlot :: String
