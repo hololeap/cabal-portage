@@ -3,7 +3,7 @@ name:               parsable
 version:            0.1.0.0
 synopsis:           Parsable and Printable classes
 
-tested-with:        GHC == { 9.0.2, 9.2.8, 9.4.8, 9.6.6, 9.8.4, 9.10.1 }
+tested-with:        GHC == { 9.0.2, 9.2.8, 9.4.8, 9.6.6, 9.8.4, 9.10.1, 9.12.1 }
 
 description:
     Provides the Parsable and Printable classes, which form a round-trip
