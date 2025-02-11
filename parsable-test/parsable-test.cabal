@@ -20,7 +20,9 @@ maintainer:         hololeap@protonmail.com
 
 copyright:          Copyright (C) 2022-2025 Gentoo Authors
 category:           Testing
-extra-doc-files: CHANGELOG.md
+extra-doc-files:
+    , CHANGELOG.md
+    , README.md
 
 source-repository head
     type:           git
