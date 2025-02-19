@@ -25,7 +25,6 @@ copyright:          Copyright (C) 2022-2025 Gentoo Authors
 category:           System
 extra-doc-files:
     , CHANGELOG.md
-    , README.md
 
 extra-source-files:
     test/data/**/*.stdout
