@@ -31,7 +31,7 @@ gentooParseTests n pkgStrings = testGroup n $
 -- | Scan the entire @/var/db/repos@ tree for ebuilds and form these into
 --  pacakge atoms.
 repoTree :: IO [String]
-repoTree = toListT $ do
+repoTree = toList $ do
     let reposDir = "/var/db/repos"
     checkDir reposDir $ do
 
@@ -50,7 +50,7 @@ repoTree = toListT $ do
 --   @<category>/<pkg-name>-<version>@. This is inherently part of the directory
 --   structure inside @/var/db/pkg@.
 pkgTree :: IO [String]
-pkgTree = toListT $ do
+pkgTree = toList $ do
     let portagePkgDir = "/var/db/pkg"
     checkDir portagePkgDir $ do
 
@@ -66,7 +66,7 @@ pkgTree = toListT $ do
 listDir :: FilePath -> ListT IO FilePath
 listDir d = do
     lift (doesDirectoryExist d) >>= guard
-    listDirectory d >>= fromFoldable
+    lift (listDirectory d) >>= fromFoldable
 
 checkDir :: FilePath -> ListT IO a -> ListT IO a
 checkDir d rest = do
