@@ -49,7 +49,6 @@ module Distribution.Portage.Types
 import Control.Applicative (Alternative, some)
 import Data.Data (Data)
 import Data.Function (on)
-import Data.Hashable
 import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
@@ -63,7 +62,6 @@ newtype Category = Category
     { unwrapCategory :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
-    deriving anyclass Hashable
 
 instance Stream s m Char => Parsable Category m u s where
     parserName = "portage category"
@@ -85,7 +83,6 @@ newtype PkgName = PkgName
     { unwrapPkgName :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
-    deriving anyclass Hashable
 
 instance forall m u s. Stream s m Char => Parsable PkgName m u s where
     parserName = "portage package name"
@@ -102,7 +99,6 @@ instance forall m u s. Stream s m Char => Parsable PkgName m u s where
 newtype VersionNum = VersionNum
     { unwrapVersionNum :: NonEmpty (NonEmpty Char) }
     deriving stock (Show, Eq, Data, Generic)
-    deriving anyclass Hashable
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord VersionNum where
@@ -145,7 +141,6 @@ instance Stream s m Char => Parsable VersionNum m u s where
 newtype VersionLetter = VersionLetter
     { unwrapVersionLetter :: Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
-    deriving anyclass Hashable
 
 instance Printable VersionLetter where
     toString (VersionLetter l) = [l]
@@ -161,7 +156,6 @@ data VersionSuffix
     | SuffixRC
     | SuffixP
     deriving stock (Show, Eq, Ord, Data, Generic, Bounded, Enum)
-    deriving anyclass Hashable
 
 instance Printable VersionSuffix where
     toString = \case
@@ -184,7 +178,6 @@ instance Stream s m Char => Parsable VersionSuffix m u s where
 newtype VersionSuffixNum = VersionSuffixNum
     { unwrapVersionSuffixNum :: NonEmpty Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
-    deriving anyclass Hashable
 
 instance Printable VersionSuffixNum where
     toString = NE.toList . unwrapVersionSuffixNum
@@ -196,7 +189,6 @@ instance Stream s m Char => Parsable VersionSuffixNum m u s where
 newtype VersionRevision = VersionRevision
     { unwrapVersionRevision :: NonEmpty Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
-    deriving anyclass Hashable
 
 instance Printable VersionRevision where
     toString (VersionRevision r) = "r" ++ NE.toList r
@@ -213,7 +205,6 @@ data Version = Version
     , getVersionSuffixes :: [(VersionSuffix, Maybe VersionSuffixNum)]
     , getVersionRevision :: Maybe VersionRevision
     } deriving stock (Show, Eq, Data, Generic)
-    deriving anyclass Hashable
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord Version where
@@ -261,7 +252,6 @@ data Operator
     | GreaterOrEqual
     | Greater
     deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
-    deriving anyclass Hashable
 
 data ConstrainedDep = ConstrainedDep
     { constrainedOperator   :: Operator
@@ -271,7 +261,6 @@ data ConstrainedDep = ConstrainedDep
     , constrainedSlot       :: Maybe Slot
     , constrainedRepository :: Maybe Repository
     } deriving stock (Show, Eq, Ord, Data, Generic)
-      deriving anyclass Hashable
 
 instance Printable ConstrainedDep where
     toString (ConstrainedDep o c n v ms mr)
@@ -375,7 +364,6 @@ data Slot = Slot
     , getSubSlot :: Maybe SubSlot
     }
     deriving stock (Show, Eq, Ord, Data, Generic)
-    deriving anyclass Hashable
 
 instance Printable Slot where
     toString (Slot s mss)
@@ -392,7 +380,6 @@ instance Stream s m Char => Parsable Slot m u s where
 newtype SubSlot = SubSlot { unwrapSubSlot :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
-    deriving anyclass Hashable
 
 instance Stream s m Char => Parsable SubSlot m u s where
     parserName = "portage sub-slot"
@@ -417,7 +404,6 @@ slotParser = wordAllowed wordStart wordRest
 newtype Repository = Repository { unwrapRepository :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
-    deriving anyclass Hashable
 
 instance Stream s m Char => Parsable Repository m u s where
     parserName = "portage repository"
@@ -440,7 +426,6 @@ data Package = Package
     , getRepository :: Maybe Repository
     }
     deriving stock (Show, Eq, Ord, Data, Generic)
-    deriving anyclass Hashable
 
 instance Printable Package where
     toString (Package c n mv ms mr)
@@ -494,7 +479,6 @@ newtype FauxVersion = FauxVersion
     { unwrapFauxVersion :: Version }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype Printable
-    deriving anyclass Hashable
 
 instance Stream s m Char => Parsable FauxVersion m u s where
     parserName = "faux portage version"
@@ -507,7 +491,6 @@ newtype FauxVersionNum = FauxVersionNum
     { unwrapFauxVersionNum :: VersionNum }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype Printable
-    deriving anyclass Hashable
 
 instance Stream s m Char => Parsable FauxVersionNum m u s where
     parserName = "faux portage version number"
