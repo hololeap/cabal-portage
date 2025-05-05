@@ -12,7 +12,7 @@ import System.FilePath.Posix
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Internal.Distribution.Portage.Types
+import Distribution.Portage.Types
 import Data.Parsable
 import Test.Parsable
 
