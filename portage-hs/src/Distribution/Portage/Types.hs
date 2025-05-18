@@ -46,6 +46,9 @@ module Distribution.Portage.Types
     , UseDep(..)
     , UseDepDefault(..)
     , UseFlag(..)
+    -- * Dependency groups
+    , DepGroup(..)
+    , DepBlock(..)
     -- * Internal
     , FauxVersion(..)
     , FauxVersionNum(..)
@@ -56,3 +59,4 @@ import Distribution.Portage.Types.UseDep
 import Distribution.Portage.Types.Version
 import Distribution.Portage.Types.VersionedPkg
 import Distribution.Portage.Types.DepSpec
+import Distribution.Portage.Types.DepGroup

@@ -41,6 +41,8 @@ validityTests =
         , parsableQuickCheck (Proxy @Repository)
         , parsableQuickCheck (Proxy @Package)
         , parsableQuickCheck (Proxy @DepSpec)
+        , parsableQuickCheck (Proxy @DepGroup)
+        , parsableQuickCheck (Proxy @DepBlock)
         , parsableQuickCheck (Proxy @FauxVersion)
         , parsableQuickCheck (Proxy @FauxVersionNum)
         ]
@@ -260,6 +262,34 @@ instance Arbitrary Package where
     arbitrary = Package
         <$> arbitrary
         <*> arbitrary
+
+-- The extra stuff (like the Int counter, 'size', and 'scale') is machinery to
+-- prevent the generated DepGroup from getting too big.
+instance Arbitrary DepGroup where
+    arbitrary = scale (floor . iSqrt) (go 0)
+      where
+        go :: Int -> Gen DepGroup
+        go depth = oneof
+            [ AndGroup <$> neGen depth
+            , OrGroup <$> neGen depth
+            , UseGroup <$> neGen depth <*> arbitrary
+            , NotUseGroup <$> neGen depth <*> arbitrary
+            ]
+
+        neGen :: Int -> Gen (NE.NonEmpty (Either DepGroup DepSpec))
+        neGen depth = nonEmptyGen $ sized $ \case
+            -- If we are getting too deep, preculde child DepGroups on this level
+            s | depth > s `div` 2 -> Right <$> arbitrary
+              | otherwise -> oneof
+                    [Left <$> go (depth+1), Right <$> arbitrary]
+
+        iSqrt :: Int -> Float
+        iSqrt = sqrt . fromIntegral
+
+instance Arbitrary DepBlock where
+    arbitrary = DepBlock <$> do
+        s <- getSize
+        resize (s `div` 10) $ listOf $ resize s $ arbitrary
 
 -- Generates version numbers with exactly one component. For use with
 -- FauxVersion.

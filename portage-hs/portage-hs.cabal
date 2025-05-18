@@ -62,6 +62,7 @@ library
     import: all
     exposed-modules:
         , Distribution.Portage.Types
+        , Distribution.Portage.Types.DepGroup
         , Distribution.Portage.Types.DepSpec
         , Distribution.Portage.Types.Package
         , Distribution.Portage.Types.UseDep
