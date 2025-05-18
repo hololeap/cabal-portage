@@ -62,10 +62,6 @@ library
     import: all
     exposed-modules:
         , Distribution.Portage.Types
-        , Distribution.Portage.PkgDb
-        , Distribution.Portage.PkgDb.Contents
-        , Distribution.Portage.Emerge
-        , Distribution.Portage.Emerge.Parser
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -105,7 +101,6 @@ test-suite portage-hs-test
     hs-source-dirs:   test
     main-is:          Main.hs
     other-modules:
-        , Emerge.ParserTests
         , Types.ValidityTests
         , Types.UnitTests
         , Paths_portage_hs
@@ -142,6 +137,4 @@ test-suite portage-hs-test
         CPP-Options:
             -DGENTOO_TESTS
         other-modules:
-            , Emerge.GentooTests
-            , PkgDb.GentooTests
             , Types.GentooTests
