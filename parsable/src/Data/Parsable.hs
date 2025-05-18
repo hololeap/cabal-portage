@@ -48,6 +48,7 @@ module Data.Parsable
     , satisfyAny
     , wordAllowed
     , readParsec
+    , choice
     -- * Printing
     , Printable(..)
     , toText
@@ -63,7 +64,7 @@ module Data.Parsable
     , module Text.Parsec.Char
     ) where
 
-import Control.Applicative hiding (many)
+import Control.Applicative hiding (many, (<|>))
 import Control.Monad
 import Control.Monad.Trans.Class
 import Data.Char
@@ -73,7 +74,7 @@ import Data.Kind
 import Data.String
 import Data.Text (Text, unpack)
 import GHC.Generics
-import Text.Parsec
+import Text.Parsec hiding (choice)
 import Text.Parsec.Char
 import Text.Read (readMaybe)
 
@@ -137,6 +138,12 @@ wordAllowed :: Stream s m Char
     -> [Char -> Bool] -- ^ Any subsequent tokens
     -> ParsecT s u m [Char]
 wordAllowed beg rest = (:) <$> satisfyAny beg <*> many (satisfyAny rest)
+
+-- | Similar to 'P.choice', but adds 'try' to all elements except the last.
+choice :: [ParsecT s u m a] -> ParsecT s u m a
+choice [p] = p
+choice (p:ps) = try p <|> choice ps
+choice [] = empty
 
 -- | Types that can be converted back to a @String@.
 class Printable t where
