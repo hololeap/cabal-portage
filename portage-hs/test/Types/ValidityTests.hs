@@ -31,13 +31,16 @@ validityTests =
         , parsableQuickCheck (Proxy @VersionSuffixNum)
         , parsableQuickCheck (Proxy @VersionRevision)
         , parsableQuickCheck (Proxy @Version)
---         , parsableQuickCheck (Proxy @Operator)
-        , parsableQuickCheck (Proxy @ConstrainedDep)
+        , parsableQuickCheck (Proxy @VersionedPkg)
         , parsableQuickCheck (Proxy @Slot)
         , parsableQuickCheck (Proxy @SubSlot)
+        , parsableQuickCheck (Proxy @UseFlag)
+        , parsableQuickCheck (Proxy @UseDepDefault)
+        , parsableQuickCheck (Proxy @UseDep)
+        , parsableQuickCheck (Proxy @UseDependency)
         , parsableQuickCheck (Proxy @Repository)
         , parsableQuickCheck (Proxy @Package)
---         , parsableQuickCheck (Proxy @EBuildFileName)
+        , parsableQuickCheck (Proxy @DepSpec)
         , parsableQuickCheck (Proxy @FauxVersion)
         , parsableQuickCheck (Proxy @FauxVersionNum)
         ]
@@ -47,6 +50,20 @@ validityTests =
 
 instance Arbitrary Natural where
     arbitrary = arbitrarySizedNatural
+
+instance Arbitrary DepSpec where
+    arbitrary = oneof
+        [ VersionedDepSpec
+            <$> arbitrary
+            <*> liftArbitrary arbitrary
+            <*> liftArbitrary arbitrary
+            <*> liftArbitrary arbitrary
+        , UnversionedDepSpec
+            <$> arbitrary
+            <*> liftArbitrary arbitrary
+            <*> liftArbitrary arbitrary
+            <*> liftArbitrary arbitrary
+        ]
 
 -- > 3.1.1 Category names
 -- > A category name may contain any of the characters [A-Za-z0-9+_.-].
@@ -79,9 +96,12 @@ instance Arbitrary PkgName where
 -- > A slot name may contain any of the characters [A-Za-z0-9+_.-].
 -- > It must not begin with a hyphen, a dot or a plus sign.
 instance Arbitrary Slot where
-    arbitrary = Slot
-        <$> slotGen
-        <*> liftArbitrary arbitrary
+    arbitrary = oneof
+        [ pure AnySlot
+        , pure AnySlotBreakable
+        , SlotBreakable <$> slotGen <*> liftArbitrary arbitrary
+        , Slot <$> slotGen <*> liftArbitrary arbitrary
+        ]
 
 instance Arbitrary SubSlot where
     arbitrary = SubSlot <$> slotGen
@@ -102,7 +122,6 @@ slotGen = wordGen wordStart wordRest
         ]
 
 
--- TODO
 -- > 3.1.4 USE flag names
 -- > A USE flag name may contain any of the characters [A-Za-z0-9+_@-].
 -- > It must begin with an alphanumeric character. Underscores should be
@@ -110,7 +129,39 @@ slotGen = wordGen wordStart wordRest
 -- >
 -- > Note: Usage of the at-sign is deprecated. It was previously required for
 -- > LINGUAS.
+instance Arbitrary UseDependency where
+    arbitrary = UseDependency <$> nonEmptyGen arbitrary
 
+instance Arbitrary UseDep where
+    arbitrary = oneof
+        [ UseDepEnabled <$> arbitrary <*> liftArbitrary arbitrary
+        , UseDepMatching <$> arbitrary <*> liftArbitrary arbitrary
+        , UseDepNegated <$> arbitrary <*> liftArbitrary arbitrary
+        , UseDepMatchIfEnabled <$> arbitrary <*> liftArbitrary arbitrary
+        , UseDepMatchIfDisabled <$> arbitrary <*> liftArbitrary arbitrary
+        , UseDepDisabled <$> arbitrary <*> liftArbitrary arbitrary
+        ]
+
+instance Arbitrary UseDepDefault where
+    arbitrary = oneof
+        [ pure UseDefaultEnabled
+        , pure UseDefaultDisabled
+        ]
+
+instance Arbitrary UseFlag where
+    arbitrary = UseFlag <$> pkgGen wordStart wordRest
+      where
+        wordStart =
+            [ isAsciiUpper
+            , isAsciiLower
+            , isDigit
+            ]
+        wordRest
+            = (== '+')
+            : (== '_')
+            : (== '@')
+            : (== '-')
+            : wordStart
 
 -- > 3.1.5 Repository names
 -- > A repository name may contain any of the characters [A-Za-z0-9_-].
@@ -188,31 +239,27 @@ instance Arbitrary Version where
         <*> liftArbitrary (liftArbitrary arbitrary)
         <*> liftArbitrary arbitrary
 
-instance Arbitrary Operator where
-    arbitrary = arbitraryBoundedEnum
-
-instance Arbitrary ConstrainedDep where
-    arbitrary = ConstrainedDep
-        <$> arbitrary
-        <*> arbitrary
-        <*> arbitrary
-        <*> arbitrary
-        <*> liftArbitrary arbitrary
-        <*> liftArbitrary arbitrary
+instance Arbitrary VersionedPkg where
+    arbitrary = oneof
+        [ VPkgLT <$> arbitrary <*> arbitrary
+        , VPkgLE <$> arbitrary <*> arbitrary
+        , VPkgGT <$> arbitrary <*> arbitrary
+        , VPkgGE <$> arbitrary <*> arbitrary
+        , VPkgEq <$> arbitrary <*> arbitrary
+        , VPkgEqIgnoreRev <$> arbitrary <*> arbitrary
+        , do
+            p <- arbitrary
+            -- Just generate a random VersionNumber when testing VPkgEqWildCard;
+            -- leave the other version components blank.
+            vn <- arbitrary
+            pure (VPkgEqWildcard p (Version vn Nothing [] Nothing))
+        ]
 
 -- The composite of an entire package atom
 instance Arbitrary Package where
     arbitrary = Package
         <$> arbitrary
         <*> arbitrary
-        <*> liftArbitrary arbitrary
-        <*> liftArbitrary arbitrary
-        <*> liftArbitrary arbitrary
-
--- instance Arbitrary EBuildFileName where
---     arbitrary = EBuildFileName
---         <$> arbitrary
---         <*> arbitrary
 
 -- Generates version numbers with exactly one component. For use with
 -- FauxVersion.

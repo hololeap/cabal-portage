@@ -26,7 +26,7 @@ gentooTests = testGroup "strings from live Gentoo system" <$> sequenceA
 --   pass the "roundtrip" test.
 gentooParseTests :: TestName -> [String] -> TestTree
 gentooParseTests n pkgStrings = testGroup n $
-    parsableHUnit (Proxy @Package) <$> pkgStrings
+    parsableHUnit (Proxy @DepSpec) <$> pkgStrings
 
 -- | Scan the entire @/var/db/repos@ tree for ebuilds and form these into
 --  pacakge atoms.
@@ -44,7 +44,7 @@ repoTree = toList $ do
 
         guard $ ext == ".ebuild"
 
-        pure $ cat ++ "/" ++ nv ++ "::" ++ repo
+        pure $ "=" ++ cat ++ "/" ++ nv ++ "::" ++ repo
 
 -- | Scan the entire @/var/db/pkg@ tree for package atoms in the form
 --   @<category>/<pkg-name>-<version>@. This is inherently part of the directory
@@ -61,7 +61,7 @@ pkgTree = toList $ do
             '.' : _ -> empty
             '-' : _ -> empty
             []      -> empty
-            _       -> pure $ cat ++ "/" ++ nv
+            _       -> pure $ "=" ++ cat ++ "/" ++ nv
 
 listDir :: FilePath -> ListT IO FilePath
 listDir d = do
