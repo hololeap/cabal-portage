@@ -2,9 +2,9 @@ name: cabal-portage
 
 on:
   push:
-    branches: [ main, test ]
+    branches: [ main, flatparse, parsec ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, flatparse, parsec ]
 
 permissions:
   contents: read
