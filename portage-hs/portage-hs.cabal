@@ -71,7 +71,6 @@ library
         , containers <0.8
         , directory <1.4
         , filepath <1.6
-        , hashable <1.6
         , mtl <2.4
         , process <1.7
         , text <2.2
