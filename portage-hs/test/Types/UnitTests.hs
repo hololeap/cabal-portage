@@ -9,7 +9,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Data.ByteString.Char8 (pack)
 
-import Internal.Distribution.Portage.Types
+import Distribution.Portage.Types
 import Data.Parsable
 import Test.Parsable
 

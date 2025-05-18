@@ -51,6 +51,7 @@ module Distribution.Portage.Types
 import Control.Applicative (Alternative)
 import Data.Data (Data)
 import Data.Function (on)
+import Data.Hashable
 import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
@@ -64,6 +65,7 @@ newtype Category = Category
     { unwrapCategory :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass Hashable
 
 instance Parsable Category st e where
     parserName = "portage category"
@@ -85,6 +87,7 @@ newtype PkgName = PkgName
     { unwrapPkgName :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass Hashable
 
 instance Parsable PkgName st String where
     parserName = "portage package name"
@@ -101,6 +104,7 @@ instance Parsable PkgName st String where
 newtype VersionNum = VersionNum
     { unwrapVersionNum :: NonEmpty (NonEmpty Char) }
     deriving stock (Show, Eq, Data, Generic)
+    deriving anyclass Hashable
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord VersionNum where
@@ -143,6 +147,7 @@ instance Parsable VersionNum st e where
 newtype VersionLetter = VersionLetter
     { unwrapVersionLetter :: Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass Hashable
 
 instance Printable VersionLetter where
     toString (VersionLetter l) = [l]
@@ -158,6 +163,7 @@ data VersionSuffix
     | SuffixRC
     | SuffixP
     deriving stock (Show, Eq, Ord, Data, Generic, Bounded, Enum)
+    deriving anyclass Hashable
 
 instance Printable VersionSuffix where
     toString = \case
@@ -169,18 +175,17 @@ instance Printable VersionSuffix where
 
 instance Parsable VersionSuffix st e where
     parserName = "portage version suffix"
-    parser = $(switch
-        [| case _ of
-            "alpha" -> pure SuffixAlpha
-            "beta"  -> pure SuffixBeta
-            "pre"   -> pure SuffixPre
-            "rc"    -> pure SuffixRC
-            "p"     -> pure SuffixP
-        |])
-
+    parser = $(switch [| case _ of
+                           "alpha" -> pure SuffixAlpha
+                           "beta"  -> pure SuffixBeta
+                           "pre"   -> pure SuffixPre
+                           "rc"    -> pure SuffixRC
+                           "p"     -> pure SuffixP
+                           |])
 newtype VersionSuffixNum = VersionSuffixNum
     { unwrapVersionSuffixNum :: NonEmpty Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass Hashable
 
 instance Printable VersionSuffixNum where
     toString = NE.toList . unwrapVersionSuffixNum
@@ -192,6 +197,7 @@ instance Parsable VersionSuffixNum st e where
 newtype VersionRevision = VersionRevision
     { unwrapVersionRevision :: NonEmpty Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass Hashable
 
 instance Printable VersionRevision where
     toString (VersionRevision r) = "r" ++ NE.toList r
@@ -208,6 +214,7 @@ data Version = Version
     , getVersionSuffixes :: [(VersionSuffix, Maybe VersionSuffixNum)]
     , getVersionRevision :: Maybe VersionRevision
     } deriving stock (Show, Eq, Data, Generic)
+    deriving anyclass Hashable
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord Version where
@@ -255,6 +262,7 @@ data Operator
     | GreaterOrEqual
     | Greater
     deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
+    deriving anyclass Hashable
 
 data ConstrainedDep = ConstrainedDep
     { constrainedOperator   :: Operator
@@ -264,6 +272,7 @@ data ConstrainedDep = ConstrainedDep
     , constrainedSlot       :: Maybe Slot
     , constrainedRepository :: Maybe Repository
     } deriving stock (Show, Eq, Ord, Data, Generic)
+      deriving anyclass Hashable
 
 instance Printable ConstrainedDep where
     toString (ConstrainedDep o c n v ms mr)
@@ -371,6 +380,7 @@ data Slot = Slot
     , getSubSlot :: Maybe SubSlot
     }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass Hashable
 
 instance Printable Slot where
     toString (Slot s mss)
@@ -387,6 +397,7 @@ instance Parsable Slot st e where
 newtype SubSlot = SubSlot { unwrapSubSlot :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass Hashable
 
 instance Parsable SubSlot st e where
     parserName = "portage sub-slot"
@@ -411,6 +422,7 @@ slotParser = wordAllowed wordStart wordRest
 newtype Repository = Repository { unwrapRepository :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass Hashable
 
 instance Parsable Repository st String where
     parserName = "portage repository"
@@ -433,6 +445,7 @@ data Package = Package
     , getRepository :: Maybe Repository
     }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass Hashable
 
 instance Printable Package where
     toString (Package c n mv ms mr)
@@ -486,6 +499,7 @@ newtype FauxVersion = FauxVersion
     { unwrapFauxVersion :: Version }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype Printable
+    deriving anyclass Hashable
 
 instance Parsable FauxVersion st e where
     parserName = "faux portage version"
@@ -498,6 +512,7 @@ newtype FauxVersionNum = FauxVersionNum
     { unwrapFauxVersionNum :: VersionNum }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype Printable
+    deriving anyclass Hashable
 
 instance Parsable FauxVersionNum st e where
     parserName = "faux portage version number"

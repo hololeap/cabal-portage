@@ -9,8 +9,5 @@ cradle:
     - path: "./portage-hs/src"
       component: "lib:portage-hs"
 
-    - path: "./portage-hs/src-internal"
-      component: "portage-hs:lib:portage-hs-internal"
-
     - path: "./portage-hs/test"
       component: "portage-hs:test:portage-hs-test"
