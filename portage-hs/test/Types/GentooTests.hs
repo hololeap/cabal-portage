@@ -44,7 +44,7 @@ repoTree = toList $ do
 
         guard $ ext == ".ebuild"
 
-        pure $ "=" ++ cat ++ "/" ++ nv ++ "::" ++ repo
+        pure $ "=" ++ cat ++ "/" ++ nv
 
 -- | Scan the entire @/var/db/pkg@ tree for package atoms in the form
 --   @<category>/<pkg-name>-<version>@. This is inherently part of the directory

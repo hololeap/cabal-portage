@@ -38,7 +38,6 @@ validityTests =
         , parsableQuickCheck (Proxy @UseDepDefault)
         , parsableQuickCheck (Proxy @UseDep)
         , parsableQuickCheck (Proxy @UseDependency)
-        , parsableQuickCheck (Proxy @Repository)
         , parsableQuickCheck (Proxy @Package)
         , parsableQuickCheck (Proxy @DepSpec)
         , parsableQuickCheck (Proxy @DepGroup)
@@ -59,10 +58,8 @@ instance Arbitrary DepSpec where
             <$> arbitrary
             <*> liftArbitrary arbitrary
             <*> liftArbitrary arbitrary
-            <*> liftArbitrary arbitrary
         , UnversionedDepSpec
             <$> arbitrary
-            <*> liftArbitrary arbitrary
             <*> liftArbitrary arbitrary
             <*> liftArbitrary arbitrary
         ]
@@ -165,20 +162,21 @@ instance Arbitrary UseFlag where
             : (== '-')
             : wordStart
 
+-- TODO (The type needs a new home, if repos are needed at all)
 -- > 3.1.5 Repository names
 -- > A repository name may contain any of the characters [A-Za-z0-9_-].
 -- > It must not begin with a hyphen. In addition, every repository
 -- > name must also be a valid package name.
-instance Arbitrary Repository where
-    arbitrary = Repository <$> pkgGen wordStart wordRest
-      where
-        wordStart =
-            [ isAsciiUpper
-            , isAsciiLower
-            , isDigit
-            , (== '_')
-            ]
-        wordRest = (== '-') : wordStart
+-- instance Arbitrary Repository where
+--     arbitrary = Repository <$> pkgGen wordStart wordRest
+--       where
+--         wordStart =
+--             [ isAsciiUpper
+--             , isAsciiLower
+--             , isDigit
+--             , (== '_')
+--             ]
+--         wordRest = (== '-') : wordStart
 
 
 -- TODO
