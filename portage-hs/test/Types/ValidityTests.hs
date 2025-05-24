@@ -32,6 +32,7 @@ validityTests =
         , parsableQuickCheck (Proxy @VersionRevision)
         , parsableQuickCheck (Proxy @Version)
         , parsableQuickCheck (Proxy @VersionedPkg)
+        , parsableQuickCheck (Proxy @Block)
         , parsableQuickCheck (Proxy @Slot)
         , parsableQuickCheck (Proxy @SubSlot)
         , parsableQuickCheck (Proxy @UseFlag)
@@ -55,11 +56,13 @@ instance Arbitrary Natural where
 instance Arbitrary DepSpec where
     arbitrary = oneof
         [ VersionedDepSpec
-            <$> arbitrary
+            <$> liftArbitrary arbitrary
+            <*> arbitrary
             <*> liftArbitrary arbitrary
             <*> liftArbitrary arbitrary
         , UnversionedDepSpec
-            <$> arbitrary
+            <$> liftArbitrary arbitrary
+            <*> arbitrary
             <*> liftArbitrary arbitrary
             <*> liftArbitrary arbitrary
         ]
@@ -275,6 +278,13 @@ instance Arbitrary VersionedPkg where
             -- leave the other version components blank.
             vn <- arbitrary
             pure (VPkgEqWildcard p (Version vn Nothing [] Nothing))
+        ]
+
+-- 8.3.2 Block operator
+instance Arbitrary Block where
+    arbitrary = oneof
+        [ pure WeakBlock
+        , pure StrongBlock
         ]
 
 -- The composite of an entire package atom

@@ -30,6 +30,7 @@ module Distribution.Portage.Types
     , PkgName(..)
     , Slot(..)
     , SubSlot(..)
+    , Block(..)
     -- ** Versions
     , Version(..)
     , VersionNum(..)
