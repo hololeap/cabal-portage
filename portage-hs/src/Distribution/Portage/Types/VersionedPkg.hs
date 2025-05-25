@@ -34,15 +34,15 @@ import Distribution.Portage.Types.Version
 
 -- | One constructor per operator as defined in section 8.3.1 in the PMS
 data VersionedPkg
-    = VPkgLT Package Version
-    | VPkgLE Package Version
-    | VPkgGT Package Version
-    | VPkgGE Package Version
-    | VPkgEq Package Version
-    | VPkgEqIgnoreRev Package Version
+    = VPkgLT { vPkgPackage :: Package, vPkgVersion :: Version }
+    | VPkgLE { vPkgPackage :: Package, vPkgVersion :: Version }
+    | VPkgGT { vPkgPackage :: Package, vPkgVersion :: Version }
+    | VPkgGE { vPkgPackage :: Package, vPkgVersion :: Version }
+    | VPkgEq { vPkgPackage :: Package, vPkgVersion :: Version }
+    | VPkgEqIgnoreRev { vPkgPackage :: Package, vPkgVersion :: Version }
     -- | Special exception: if the version specified has an asterisk
     --   immediately following it...
-    | VPkgEqWildcard Package Version
+    | VPkgEqWildcard { vPkgPackage :: Package, vPkgVersion :: Version }
     deriving stock (Show, Eq, Ord, Data, Generic)
 
 instance Printable VersionedPkg where
