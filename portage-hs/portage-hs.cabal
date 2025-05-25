@@ -122,7 +122,9 @@ test-suite portage-hs-test
         , containers <0.8
         , directory <1.4
         , filepath <1.6
+        , flatparse
         , list-t <1.1
+        , process <1.7
         , QuickCheck <2.16
         , tasty <1.6
         , tasty-hunit <0.11
@@ -139,7 +141,9 @@ test-suite portage-hs-test
 
     if flag(gentoo-tests)
         build-depends:
-            , pretty-simple
+            , bytestring >=0.11 && <0.13
+            , conduit-extra ^>= 1.3.7
+            , filepath >=1.4.101 && <1.6
         CPP-Options:
             -DGENTOO_TESTS
         other-modules:
