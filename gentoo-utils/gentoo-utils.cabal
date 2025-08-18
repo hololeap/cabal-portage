@@ -50,7 +50,8 @@ library
         , Distribution.Gentoo.Utils.Process
         , Distribution.Gentoo.Utils.Pquery
     -- other-modules:
-    -- other-extensions:
+    other-extensions:
+        , LambdaCase
     build-depends:
         , base >=4.13 && <4.22
         , parsable >=0.1 && <0.2
@@ -58,6 +59,7 @@ library
         , bytestring >=0.11 && <0.13
         , conduit <1.4
         , conduit-extra ^>= 1.3.7
+        , directory <1.4
         , safe-exceptions ^>= 0.1.7.4
         , text <2.2
     hs-source-dirs:   src
