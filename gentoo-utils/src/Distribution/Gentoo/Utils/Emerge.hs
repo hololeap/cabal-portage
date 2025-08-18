@@ -10,8 +10,9 @@ import System.Directory
 import Distribution.Gentoo.Utils.Process
 
 -- | Run @emerge@ transparently with the given arguments
-runEmerge :: [String] -> IO (StdOut, StdErr)
-runEmerge args = findEmerge >>= \exe -> runTransparent exe args
+runEmerge :: (Typeable out, Show out)
+    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
+runEmerge oType args = findEmerge >>= \exe -> runTransparent oType exe args
 
 -- | Finds the @emerge@ executable in @PATH@.
 --   Throws a fatal error if it is not found.

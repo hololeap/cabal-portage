@@ -10,8 +10,9 @@ import System.Directory
 import Distribution.Gentoo.Utils.Process
 
 -- | Run @pquery@ with the given arguments
-runPquery :: [String] -> IO (StdOut, StdErr)
-runPquery args = findPquery >>= \exe -> runOpaque exe args
+runPquery :: (Typeable out, Show out)
+    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
+runPquery oType args = findPquery >>= \exe -> runSemiTransparent oType exe args
 
 -- | Finds the @pquery@ executable in @PATH@.
 --   Throws a fatal error if it is not found.

@@ -12,12 +12,14 @@ import System.Directory
 import Distribution.Gentoo.Utils.Process
 
 -- | Run @eix@ with the given arguments
-runEix :: [String] -> IO (StdOut, StdErr)
-runEix args = findEix >>= \exe -> runOpaque exe args
+runEix :: (Typeable out, Show out)
+    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
+runEix oType args = findEix >>= \exe -> runOpaque oType exe args
 
 -- | Run @eix-update@ transparently with the given arguments
-runEixUpdate :: [String] -> IO (StdOut, StdErr)
-runEixUpdate args = findEixUpdate >>= \exe -> runTransparent exe args
+runEixUpdate :: (Typeable out, Show out)
+    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
+runEixUpdate oType args = findEixUpdate >>= \exe -> runTransparent oType exe args
 
 -- | Finds the @eix@ executable in @PATH@.
 --   Throws a fatal error if it is not found.
