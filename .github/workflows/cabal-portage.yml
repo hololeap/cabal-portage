@@ -90,8 +90,11 @@ jobs:
       - name: Build
         run: cabal build all
 
-      - name: Run tests
+      - name: Run portage-hs tests
         run: cabal test --test-option=--color=always --test-option=--num-threads=1 --test-show-details=streaming --jobs=1 portage-hs:test:portage-hs-test
+
+      - name: Run gentoo-utils tests
+        run: cabal test --test-show-details=streaming --jobs=1 gentoo-utils:test:gentoo-utils-test
 
       - name: Build documentation
         run: cabal haddock all

@@ -77,3 +77,5 @@ test-suite gentoo-utils-test
         , parsable >=0.1 && <0.2
         , parsable-test >=0.1 && <0.2
         , portage-hs >=0.1 && <0.2
+        , directory <1.4
+        , text <2.2

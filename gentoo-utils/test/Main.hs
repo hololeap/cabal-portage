@@ -1,4 +1,28 @@
 module Main (main) where
 
+import qualified Data.Text.Lazy as Lazy
+import System.Directory (findExecutable)
+
+import Distribution.Gentoo.Utils.Process
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented."
+main = go $ \exe -> do
+    let args = ["it", "works!"]
+
+    putStrLn $ showCmd "runTransparent" exe args
+    (o,e) <- runTransparent exe args
+    putStrLn $ "stdout: " ++ show (Lazy.toChunks o)
+    putStrLn $ "stderr: " ++ show (Lazy.toChunks e)
+    putStrLn ""
+
+    putStrLn $ showCmd "runOpaque" exe args
+    (o',e') <- runOpaque exe args
+    putStrLn $ "stdout: " ++ show (Lazy.toChunks o')
+    putStrLn $ "stderr: " ++ show (Lazy.toChunks e')
+    putStrLn ""
+  where
+    go :: (FilePath -> IO ()) -> IO ()
+    go f = findExecutable "echo" >>= mapM_ f
+
+    showCmd :: String -> FilePath -> [String] -> String
+    showCmd func exe args = unwords $ [func, show exe, show args]
