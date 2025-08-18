@@ -10,6 +10,7 @@ this module requires a threaded runtime to function properly.
 
 module Distribution.Gentoo.Utils.Process
     ( runTransparent
+    , runSemiTransparent
     , runOpaque
       -- ** Low level
     , tryProcess
@@ -39,10 +40,20 @@ runTransparent
     -> IO (StdOut, StdErr)
 runTransparent exe args =
     tryProcess (Just (transDump stdout)) (Just (transDump stderr)) exe args
-        >>= either (error . displayException) pure
-  where
-    transDump :: Handle -> ConduitT ByteString ByteString IO ()
-    transDump = iterMC . BS.hPut
+        >>= returnOrError
+
+-- | Run a process while transparently dumping the @stderr@ data
+--   stream to its respective handle, capturing the output as lazy text
+--   streams for later use. Throws a fatal error in the event of an exception.
+runSemiTransparent
+    -- | Path of the executable
+    :: FilePath
+    -- | Arguments to pass to the executable
+    -> [String]
+    -> IO (StdOut, StdErr)
+runSemiTransparent exe args =
+    tryProcess Nothing (Just (transDump stderr)) exe args
+        >>= returnOrError
 
 -- | Run a process, capturing the output as lazy text streams for later use.
 --   Throws a fatal error in the event of an exception.
@@ -54,7 +65,7 @@ runOpaque
     -> IO (StdOut, StdErr)
 runOpaque exe args =
     tryProcess Nothing Nothing exe args
-        >>= either (error . displayException) pure
+        >>= returnOrError
 
 -- | Run a process and either return the @stdout@ and @stderr@ lazy text streams,
 --   or a 'RunProcessException' in the event of an error.
@@ -127,6 +138,13 @@ instance Exception RunProcessException where
         [ "Error when running \"" ++ showCmdSpec cp ++ "\""
         , displayException e
         ]
+
+-- | Transparently dump the incoming stream to the specified handle
+transDump :: Handle -> ConduitT ByteString ByteString IO ()
+transDump = iterMC . BS.hPut
+
+returnOrError :: Exception e => Either e a -> IO a
+returnOrError = either (error . displayException) pure
 
 showCmdSpec :: CreateProcess -> String
 showCmdSpec cp = case cmdspec cp of
