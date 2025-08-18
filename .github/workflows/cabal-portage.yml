@@ -54,6 +54,11 @@ jobs:
           cd portage-hs
           cabal check
 
+      - name: Check gentoo-utils cabal file
+        run: |
+          cd gentoo-utils
+          cabal check
+
       - name: Configure the build
         run: |
           cabal configure all --enable-tests --enable-benchmarks --enable-documentation --flag=pedantic

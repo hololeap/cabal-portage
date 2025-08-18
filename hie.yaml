@@ -11,3 +11,9 @@ cradle:
 
     - path: "./portage-hs/test"
       component: "portage-hs:test:portage-hs-test"
+
+    - path: "./gentoo-utils/src"
+      component: "lib:gentoo-utils"
+
+    - path: "./gentoo-utils/test"
+      component: "gentoo-utils:test:gentoo-utils-test"
