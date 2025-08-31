@@ -9,7 +9,7 @@ module Distribution.Gentoo.Utils.Eix
 
 import System.Directory
 
-import Distribution.Gentoo.Utils.Process
+import Data.Conduit.Run
 
 -- | Run @eix@ with the given arguments
 runEix :: (Typeable out, Show out)

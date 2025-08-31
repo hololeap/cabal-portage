@@ -1,2 +1,6 @@
--- packages: ./semigroupoids-slim ./parsable ./portage-hs ./cabal-portage
 packages: ./parsable ./parsable-test ./portage-hs ./gentoo-utils
+
+source-repository-package
+    type: git
+    location: https://github.com/hololeap/conduit-run.git
+    tag: 65aa0865c5e1293d39c7f2bbfa3a89e8c3722d68

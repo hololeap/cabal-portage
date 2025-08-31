@@ -7,7 +7,7 @@ module Distribution.Gentoo.Utils.Emerge
 
 import System.Directory
 
-import Distribution.Gentoo.Utils.Process
+import Data.Conduit.Run
 
 -- | Run @emerge@ transparently with the given arguments
 runEmerge :: (Typeable out, Show out)

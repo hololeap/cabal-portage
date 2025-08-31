@@ -18,7 +18,7 @@ import Validation
 import Distribution.Portage.Types
 import Data.Parsable
 
-import Distribution.Gentoo.Utils.Process
+import Data.Conduit.Run
 
 -- | A single package and all of its dependency specifications
 data PkgDeps = PkgDeps
