@@ -9,6 +9,7 @@ module Distribution.Gentoo.Utils.Pquery
     , findPquery
     ) where
 
+import Control.Exception.Safe (throwString)
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty)
 import System.Directory
@@ -88,8 +89,8 @@ runPquery oType args = findPquery >>= \exe -> runSemiTransparent oType exe args
 -- | Finds the @pquery@ executable in @PATH@.
 --   Throws a fatal error if it is not found.
 findPquery :: IO FilePath
-findPquery = findExecutable "pquery" >>= \case
-    Nothing -> error $ unwords
+findPquery = fatal $ findExecutable "pquery" >>= \case
+    Nothing -> throwString $ unwords
         [ "Could not find \"pquery\" executable."
         , "Please install sys-apps/pkgcore."
         ]

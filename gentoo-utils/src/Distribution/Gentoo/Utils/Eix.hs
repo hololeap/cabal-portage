@@ -7,6 +7,7 @@ module Distribution.Gentoo.Utils.Eix
     , findEixUpdate
     ) where
 
+import Control.Exception.Safe (throwString)
 import System.Directory
 
 import Data.Conduit.Run
@@ -34,8 +35,8 @@ findEix = findExecutable "eix" >>= \case
 -- | Finds the @eix-update@ executable in @PATH@.
 --   Throws a fatal error if it is not found.
 findEixUpdate :: IO FilePath
-findEixUpdate = findExecutable "eix-update" >>= \case
-    Nothing -> error $ unwords
+findEixUpdate = fatal $ findExecutable "eix-update" >>= \case
+    Nothing -> throwString $ unwords
         [ "Could not find \"eix-update\" executable."
         , "Please install app-portage/eix."
         ]

@@ -5,6 +5,7 @@ module Distribution.Gentoo.Utils.Emerge
     , findEmerge
     ) where
 
+import Control.Exception.Safe (throwString)
 import System.Directory
 
 import Data.Conduit.Run
@@ -17,8 +18,8 @@ runEmerge oType args = findEmerge >>= \exe -> runTransparent oType exe args
 -- | Finds the @emerge@ executable in @PATH@.
 --   Throws a fatal error if it is not found.
 findEmerge :: IO FilePath
-findEmerge = findExecutable "emerge" >>= \case
-    Nothing -> error $ unwords
+findEmerge = fatal $ findExecutable "emerge" >>= \case
+    Nothing -> throwString $ unwords
         [ "Could not find \"emerge\" executable."
         , "Please install sys-apps/portage."
         ]
