@@ -75,9 +75,3 @@ test-suite gentoo-utils-test
     build-depends:
         , gentoo-utils
         , base >=4.13 && <4.22
-        , parsable >=0.1 && <0.2
-        , parsable-test >=0.1 && <0.2
-        , portage-hs >=0.1 && <0.2
-        , conduit-run ^>= 0.1.0.0
-        , directory <1.4
-        , text <2.2
