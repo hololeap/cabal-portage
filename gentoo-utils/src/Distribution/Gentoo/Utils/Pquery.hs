@@ -9,16 +9,14 @@ module Distribution.Gentoo.Utils.Pquery
     , findPquery
     ) where
 
+import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty)
-import Data.Text.Encoding (encodeUtf8)
-import qualified Data.Text.Lazy as Lazy
 import System.Directory
 import Validation
 
-import Distribution.Portage.Types
-import Data.Parsable
-
 import Data.Conduit.Run
+import Data.Parsable
+import Distribution.Portage.Types
 
 -- | A single package and all of its dependency specifications
 data PkgDeps = PkgDeps
@@ -65,8 +63,8 @@ getPqueryDump
     :: [String]
     -> IO (Validation (NonEmpty (Maybe String)) [PkgDeps])
 getPqueryDump extraArgs =
-    traverse parseLine . Lazy.lines . fst
-        <$> runPquery textOutput (args ++ extraArgs)
+    traverse parseLine . fst
+        <$> runPquery linesOutput (args ++ extraArgs)
   where
     args = [ "--raw"
            , "--unfiltered"
@@ -79,8 +77,8 @@ getPqueryDump extraArgs =
            , "--attr", "pdepend"
            , "--attr", "idepend" ]
 
-    parseLine :: Lazy.Text -> Validation (NonEmpty (Maybe String)) PkgDeps
-    parseLine = either failure pure . runParsable . encodeUtf8 . Lazy.toStrict
+    parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) PkgDeps
+    parseLine = either failure pure . runParsable
 
 -- | Run @pquery@ with the given arguments
 runPquery :: (Typeable out, Show out)
