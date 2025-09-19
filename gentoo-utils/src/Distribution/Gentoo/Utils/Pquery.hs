@@ -63,8 +63,7 @@ getPqueryDump
     :: [String]
     -> ExeEnv (Validation (NonEmpty (Maybe String)) [PkgDeps])
 getPqueryDump extraArgs =
-    traverse parseLine . fst
-        <$> runPquery linesOutput (args ++ extraArgs)
+    parseOutLines <$> runPquery linesOutput (args ++ extraArgs)
   where
     args = [ "--raw"
            , "--unfiltered"
@@ -76,6 +75,11 @@ getPqueryDump extraArgs =
            , "--attr", "bdepend"
            , "--attr", "pdepend"
            , "--attr", "idepend" ]
+
+    parseOutLines
+        :: (StdOut [ByteString], StdErr [ByteString])
+        -> Validation (NonEmpty (Maybe String)) [PkgDeps]
+    parseOutLines (StdOut outLines, _) = traverse parseLine outLines
 
     parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) PkgDeps
     parseLine = either failure pure . runParsable
