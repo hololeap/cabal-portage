@@ -47,6 +47,7 @@ library
     exposed-modules:
         , Distribution.Gentoo.Utils.Eix
         , Distribution.Gentoo.Utils.Emerge
+        , Distribution.Gentoo.Utils.Exe
         , Distribution.Gentoo.Utils.Pquery
     -- other-modules:
     other-extensions:
@@ -58,8 +59,11 @@ library
         , bytestring >=0.11 && <0.13
         , conduit-run ^>= 0.1.0.0
         , directory <1.4
+        , mtl ^>=2.3.1
         , safe-exceptions ^>= 0.1.7.4
+        , stm ^>=2.5.3.1
         , text <2.2
+        , unordered-containers ^>= 0.2.20
         , validation-selective ^>= 0.2.0.0
     hs-source-dirs:   src
     default-language: GHC2021

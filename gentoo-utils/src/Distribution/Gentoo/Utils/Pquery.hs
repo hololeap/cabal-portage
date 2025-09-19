@@ -6,18 +6,17 @@ module Distribution.Gentoo.Utils.Pquery
     ( PkgDeps(..)
     , getPqueryDump
     , runPquery
-    , findPquery
     ) where
 
-import Control.Exception.Safe (throwString)
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty)
-import System.Directory
 import Validation
 
 import Data.Conduit.Run
 import Data.Parsable
 import Distribution.Portage.Types
+
+import Distribution.Gentoo.Utils.Exe
 
 -- | A single package and all of its dependency specifications
 data PkgDeps = PkgDeps
@@ -62,7 +61,7 @@ instance Parsable PkgDeps st String where
 getPqueryDump
        -- | Extra arguments to pass to @pquery@
     :: [String]
-    -> IO (Validation (NonEmpty (Maybe String)) [PkgDeps])
+    -> ExeEnv (Validation (NonEmpty (Maybe String)) [PkgDeps])
 getPqueryDump extraArgs =
     traverse parseLine . fst
         <$> runPquery linesOutput (args ++ extraArgs)
@@ -81,17 +80,8 @@ getPqueryDump extraArgs =
     parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) PkgDeps
     parseLine = either failure pure . runParsable
 
--- | Run @pquery@ with the given arguments
+-- | Run @pquery@ with the given arguments. Streams @stderr@ transparently to
+--   the terminal.
 runPquery :: (Typeable out, Show out)
-    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
-runPquery oType args = findPquery >>= \exe -> runSemiTransparent oType exe args
-
--- | Finds the @pquery@ executable in @PATH@.
---   Throws a fatal error if it is not found.
-findPquery :: IO FilePath
-findPquery = fatal $ findExecutable "pquery" >>= \case
-    Nothing -> throwString $ unwords
-        [ "Could not find \"pquery\" executable."
-        , "Please install sys-apps/pkgcore."
-        ]
-    Just exe -> pure exe
+    => OutputType out -> [String] -> ExeEnv (StdOut out, StdErr out)
+runPquery oType args = runExe "pquery" $ \exe -> runSemiTransparent oType exe args

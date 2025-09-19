@@ -3,41 +3,18 @@
 module Distribution.Gentoo.Utils.Eix
     ( runEix
     , runEixUpdate
-    , findEix
-    , findEixUpdate
     ) where
-
-import Control.Exception.Safe (throwString)
-import System.Directory
 
 import Data.Conduit.Run
 
+import Distribution.Gentoo.Utils.Exe
+
 -- | Run @eix@ with the given arguments
 runEix :: (Typeable out, Show out)
-    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
-runEix oType args = findEix >>= \exe -> runOpaque oType exe args
+    => OutputType out -> [String] -> ExeEnv (StdOut out, StdErr out)
+runEix oType args = runExe "eix" $ \exe -> runOpaque oType exe args
 
 -- | Run @eix-update@ transparently with the given arguments
 runEixUpdate :: (Typeable out, Show out)
-    => OutputType out -> [String] -> IO (StdOut out, StdErr out)
-runEixUpdate oType args = findEixUpdate >>= \exe -> runTransparent oType exe args
-
--- | Finds the @eix@ executable in @PATH@.
---   Throws a fatal error if it is not found.
-findEix :: IO FilePath
-findEix = findExecutable "eix" >>= \case
-    Nothing -> error $ unwords
-        [ "Could not find \"eix\" executable."
-        , "Please install app-portage/eix."
-        ]
-    Just exe -> pure exe
-
--- | Finds the @eix-update@ executable in @PATH@.
---   Throws a fatal error if it is not found.
-findEixUpdate :: IO FilePath
-findEixUpdate = fatal $ findExecutable "eix-update" >>= \case
-    Nothing -> throwString $ unwords
-        [ "Could not find \"eix-update\" executable."
-        , "Please install app-portage/eix."
-        ]
-    Just exe -> pure exe
+    => OutputType out -> [String] -> ExeEnv (StdOut out, StdErr out)
+runEixUpdate oType args = runExe "eix-update" $ \exe -> runTransparent oType exe args
