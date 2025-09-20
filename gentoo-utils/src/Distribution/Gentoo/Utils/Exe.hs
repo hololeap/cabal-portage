@@ -4,6 +4,8 @@
 module Distribution.Gentoo.Utils.Exe
     ( ExeMap
     , ExeEnv
+    , runExeEnv
+    , lookupExe
     , runExe
     , findExe
     ) where
@@ -22,6 +24,17 @@ type ExeMap = HashMap String FilePath
 
 -- | Allows for memoization of executables and their filepath on the system
 type ExeEnv = ReaderT (TVar ExeMap) IO
+
+runExeEnv :: ExeEnv a -> IO a
+runExeEnv act = do
+    tvar <- newTVarIO HM.empty
+    runReaderT act tvar
+
+lookupExe :: String -> ExeEnv (Maybe FilePath)
+lookupExe exe = do
+    tvar <- ask
+    m <- liftIO $ atomically $ readTVar tvar
+    pure $ HM.lookup exe m
 
 -- | Run the given executable on the system, using the given action using it's
 --   filepath. Memoizes executable file paths as it finds them. Throws a fatal
