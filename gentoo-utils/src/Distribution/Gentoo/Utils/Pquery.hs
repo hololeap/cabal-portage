@@ -23,7 +23,7 @@ import Distribution.Gentoo.Utils.Exe
 
 -- | A single package and all of its dependency specifications
 data PkgDeps = PkgDeps
-    { package :: DepSpec
+    { package :: (Package, Version, Slot)
     , depend :: DepBlock
     , rdepend :: DepBlock
     , bdepend :: DepBlock
@@ -35,12 +35,27 @@ data PkgDeps = PkgDeps
 instance Parsable PkgDeps st String where
     parserName = "pquery output test entry"
     parser = PkgDeps
-        <$> parser
+        <$> (parser >>= toPkg)
         <*> ( $( string " depend=\""    ) *> parser )
         <*> ( $( string "\" rdepend=\"" ) *> parser )
         <*> ( $( string "\" bdepend=\"" ) *> parser )
         <*> ( $( string "\" pdepend=\"" ) *> parser )
         <*> ( $( string "\" idepend=\"" ) *> parser <* $( char '"' ) )
+      where
+        toPkg :: DepSpec -> ParserT st String (Package, Version, Slot)
+        toPkg = \case
+            VersionedDepSpec Nothing (VPkgEq p v) (Just s) Nothing
+                -> pure (p, v, s)
+            VersionedDepSpec Nothing (VPkgEq _ _) (Just _) _
+                -> err "UseDependency found in PkgDeps parser"
+            VersionedDepSpec Nothing (VPkgEq _ _) _ _
+                -> err "No slot found in PkgDeps parser"
+            VersionedDepSpec Nothing _ _ _
+                -> err "VPkgEq not found in PkgDeps parser"
+            VersionedDepSpec _ _ _ _
+                -> err "Blocker found in PkgDeps parser"
+            UnversionedDepSpec _ _ _ _
+                -> err "UnversionedDepSpec found in PkgDeps parser"
 
 -- | Run @pquery@ using default arguments plus the specified extra arguments,
 --   returning a list of lines from @stdout@, parsed as 'PkgDeps' then converted
