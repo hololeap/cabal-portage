@@ -21,6 +21,7 @@ module Distribution.Portage.Types.DepGroup
 (   -- * Dependency groups
       DepGroup(..)
     , DepBlock(..)
+    , DepVar(..)
     ) where
 
 import Data.Data (Data)
@@ -133,6 +134,17 @@ instance Printable DepBlock where
         = L.intercalate " "
         . fmap (either toString toString)
         . unDepBlock
+
+-- | The dependency variable of an ebuild that a 'DepBlock' may be found in.
+--   These are occasionally useful for tagging a 'DepBlock' to know where it
+--   was found.
+data DepVar
+    = DEPEND
+    | RDEPEND
+    | BDEPEND
+    | PDEPEND
+    | IDEPEND
+    deriving (Show, Eq, Ord, Bounded, Enum, Generic)
 
 ---        ---
 -- Internal --

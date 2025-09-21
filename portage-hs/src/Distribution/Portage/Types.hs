@@ -50,6 +50,7 @@ module Distribution.Portage.Types
     -- * Dependency groups
     , DepGroup(..)
     , DepBlock(..)
+    , DepVar(..)
     -- * Internal
     , FauxVersion(..)
     , FauxVersionNum(..)
