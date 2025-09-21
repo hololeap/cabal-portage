@@ -43,7 +43,8 @@ instance Parsable PkgDeps st String where
         <*> ( $( string "\" idepend=\"" ) *> parser <* $( char '"' ) )
 
 -- | Run @pquery@ using default arguments plus the specified extra arguments,
---   returning a list of lines from @stdout@, parsed as 'PqueryLine'.
+--   returning a list of lines from @stdout@, parsed as 'PkgDeps' then converted
+--   using the user-specified function.
 --
 --   Uses the following default arguments:
 --
@@ -63,9 +64,10 @@ instance Parsable PkgDeps st String where
 --   > =sys-apps/portage-3.0.67-r1:0 depend="..." rdepend="..." bdepend="..." pdepend="..." idepend="..."
 getPqueryDump
        -- | Extra arguments to pass to @pquery@
-    :: [String]
-    -> ExeEnv (Validation (NonEmpty (Maybe String)) [PkgDeps])
-getPqueryDump extraArgs =
+    :: forall a. [String]
+    -> (PkgDeps -> a)
+    -> ExeEnv (Validation (NonEmpty (Maybe String)) [a])
+getPqueryDump extraArgs f =
     parseOutLines <$> runPquery linesOutput (args ++ extraArgs)
   where
     args = [ "--raw"
@@ -81,11 +83,11 @@ getPqueryDump extraArgs =
 
     parseOutLines
         :: (StdOut [ByteString], StdErr [ByteString])
-        -> Validation (NonEmpty (Maybe String)) [PkgDeps]
+        -> Validation (NonEmpty (Maybe String)) [a]
     parseOutLines (StdOut outLines, _) = traverse parseLine outLines
 
-    parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) PkgDeps
-    parseLine = either failure pure . runParsable
+    parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) a
+    parseLine = either failure pure . fmap f . runParsable
 
 -- | Run @pquery@ with the given arguments. Streams @stderr@ transparently to
 --   the terminal.
