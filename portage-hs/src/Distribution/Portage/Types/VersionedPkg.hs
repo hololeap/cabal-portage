@@ -50,7 +50,7 @@ data VersionedPkg
     --   immediately following it..." Acts as a version wildcard.
     --
     --   e.g. @=app-misc/blah-1.2*@
-    | VPkgEqWildcard Package Version
+    | VPkgEqWildcard { vPkgPackage :: Package, vPkgVersion :: Version }
     deriving stock (Show, Eq, Ord, Data, Generic)
 
 instance Printable VersionedPkg where
