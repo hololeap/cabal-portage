@@ -12,6 +12,7 @@ dependency class strings, such as what is defined as @RDEPEND@.
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
 {-# Language FlexibleInstances #-}
+{-# Language LambdaCase #-}
 {-# Language MultiParamTypeClasses #-}
 {-# Language OverloadedStrings #-}
 {-# Language TemplateHaskell #-}
@@ -145,6 +146,25 @@ data DepVar
     | PDEPEND
     | IDEPEND
     deriving (Show, Eq, Ord, Bounded, Enum, Generic)
+
+instance Parsable DepVar st String where
+    parserName = "portage dependency specification variable"
+    parser = $(switch
+        [| case _ of
+            "DEPEND" -> pure DEPEND
+            "RDEPEND" -> pure RDEPEND
+            "BDEPEND" -> pure BDEPEND
+            "PDEPEND" -> pure PDEPEND
+            "IDEPEND" -> pure IDEPEND
+        |])
+
+instance Printable DepVar where
+    toString = \case
+        DEPEND -> "DEPEND"
+        RDEPEND -> "RDEPEND"
+        BDEPEND -> "BDEPEND"
+        PDEPEND -> "PDEPEND"
+        IDEPEND -> "IDEPEND"
 
 ---        ---
 -- Internal --
