@@ -21,3 +21,12 @@ deriving anyclass instance Hashable Version
 deriving anyclass instance Hashable Slot
 deriving newtype instance Hashable SubSlot
 deriving newtype instance Hashable Repository
+deriving anyclass instance Hashable Block
+deriving anyclass instance Hashable VersionedPkg
+deriving newtype instance Hashable UseFlag
+deriving anyclass instance Hashable UseDepDefault
+deriving anyclass instance Hashable UseDep
+deriving newtype instance Hashable UseDependency
+deriving anyclass instance Hashable DepSpec
+deriving anyclass instance Hashable DepVar
+deriving anyclass instance Hashable DepGroup
