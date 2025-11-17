@@ -60,7 +60,7 @@ library
         , bytestring >=0.11 && <0.13
         , conduit-run ^>= 0.1.0.0
         , directory <1.4
-        , hashable ^>=1.4.7.0
+        , hashable >=1.4.7.0 && <1.6
         , mtl ^>=2.3.1
         , safe-exceptions ^>= 0.1.7.4
         , stm ^>=2.5.3.1
