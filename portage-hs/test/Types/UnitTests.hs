@@ -13,6 +13,7 @@ input that has caused problems in the past.
 module Types.UnitTests (unitTests) where
 
 import Data.List.NonEmpty (NonEmpty(..))
+import Data.Typeable
 import Test.Tasty
 import Test.Tasty.HUnit
 import Data.ByteString.Char8 (pack)
@@ -28,6 +29,10 @@ unitTests = testGroup "unit tests"
             Package
                 (Category "dev-python")
                 (PkgName "nose")
+        , "app-misc/foo-0.1" `negatedParserTest`
+            Package
+                (Category "app-misc")
+                (PkgName "foo")
         , "=dev-python/nose-1" `parserTest`
             VPkgEq
                 (Package
@@ -286,3 +291,23 @@ parserTest :: forall a.
 parserTest s x = testCase (show s) $
     Right (CompleteParse, x) @=? extractResult (runParser (checkParsable @a @PureMode @String) (pack s))
 
+-- Takes a string and a bad result, and creates a TestTree from them
+negatedParserTest :: forall a.
+    ( Parsable a PureMode String
+    , Eq a
+    , Show a
+    , Typeable a
+    ) => String
+    -> a
+    -> TestTree
+negatedParserTest s x = testCase (show s ++ " should NOT be " ++ show (typeOf x)) $
+    when (e == r) (assertFailure msg)
+  where
+    e :: Either (Maybe String) (ParseCoverage, a)
+    e = Right (CompleteParse, x)
+
+    r :: Either (Maybe String) (ParseCoverage, a)
+    r = extractResult (runParser (checkParsable @a @PureMode) (pack s))
+
+    msg :: String
+    msg = "not expected: " ++ show e
