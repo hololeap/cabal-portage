@@ -40,11 +40,8 @@ lookupExe exe = do
 --   filepath. Memoizes executable file paths as it finds them. Throws a fatal
 --   error if an executable is not found in @$PATH@.
 runExe :: String -> (FilePath -> IO a) -> ExeEnv a
-runExe exeName action = ask >>= \tvar -> liftIO $ do
-    mExePath <- atomically $ do
-        exeMap <- readTVar tvar
-        pure $ HM.lookup exeName exeMap
-    case mExePath of
+runExe exeName action = ask >>= \tvar -> liftIO $
+    atomically (HM.lookup exeName <$> readTVar tvar) >>= \case
         Just exe -> action exe
         Nothing -> do
             exe <- findExe exeName

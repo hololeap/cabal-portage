@@ -213,7 +213,8 @@ unitTests = testGroup "unit tests"
                     )
                 )
                 (Just (Slot "gawk--" Nothing))
-                Nothing        , "=app-derp/f--98---54.321x_pre1:gawk--" `parserTest`
+                Nothing
+        , "=app-derp/f--98---54.321x_pre1:gawk--" `parserTest`
             VersionedDepSpec
                 Nothing
                 (VPkgEq

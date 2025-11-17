@@ -33,7 +33,7 @@ data PkgDeps = PkgDeps
     deriving (Show, Eq, Ord)
 
 instance Parsable PkgDeps st String where
-    parserName = "pquery output test entry"
+    parserName = "package depspec from pquery output line"
     parser = PkgDeps
         <$> (parser >>= toPkg)
         <*> ( $( string " depend=\""    ) *> parser )
