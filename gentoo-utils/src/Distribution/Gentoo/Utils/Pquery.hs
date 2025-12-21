@@ -30,7 +30,7 @@ data PkgDeps = PkgDeps
     , pdepend :: DepBlock
     , idepend :: DepBlock
     }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Read, Eq, Ord)
 
 instance Parsable PkgDeps st String where
     parserName = "package depspec from pquery output line"
@@ -61,7 +61,7 @@ instance Parsable PkgDeps st String where
 --   returning a list of lines from @stdout@, parsed as 'PkgDeps' then converted
 --   using the user-specified function.
 --
---   Uses the following default arguments:
+--   Passes the following default arguments to the @pquery@ exe:
 --
 --   > --raw
 --   > --unfiltered
@@ -74,15 +74,16 @@ instance Parsable PkgDeps st String where
 --   > --attr pdepend
 --   > --attr idepend
 --
---   This produces lines of output from @pquery@ that look like:
+--   These arguments, passed to @pquery@, produce lines of output
+--   that looks like:
 --
 --   > =sys-apps/portage-3.0.67-r1:0 depend="..." rdepend="..." bdepend="..." pdepend="..." idepend="..."
 getPqueryDump
-       -- | Extra arguments to pass to @pquery@
-    :: forall a. [String]
-    -> (PkgDeps -> a)
-    -> ExeEnv (Validation (NonEmpty (Maybe String)) [a])
-getPqueryDump extraArgs f =
+    :: forall a.
+       [String] -- ^ Extra arguments to pass to @pquery@
+    -> (PkgDeps -> a) -- ^ conversion function (can be @'id' :: PkgDeps -> PkgDeps@))
+    -> ExeEnv (Validation (NonEmpty String) [a])
+getPqueryDump extraArgs convFunc =
     parseOutLines <$> runPquery linesOutput (args ++ extraArgs)
   where
     args = [ "--raw"
@@ -98,11 +99,11 @@ getPqueryDump extraArgs f =
 
     parseOutLines
         :: (StdOut [ByteString], StdErr [ByteString])
-        -> Validation (NonEmpty (Maybe String)) [a]
+        -> Validation (NonEmpty String) [a]
     parseOutLines (StdOut outLines, _) = traverse parseLine outLines
 
-    parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) a
-    parseLine = either failure pure . fmap f . runParsable
+    parseLine :: ByteString -> Validation (NonEmpty String) a
+    parseLine = either failure pure . fmap convFunc . runParsable
 
 -- | Run @pquery@ with the given arguments. Streams @stderr@ transparently to
 --   the terminal.
