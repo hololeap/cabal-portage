@@ -53,8 +53,34 @@ data VersionedPkg
     --
     --   e.g. @=app-misc/blah-1.2*@
     | VPkgEqWildcard { vPkgPackage :: Package, vPkgVersion :: Version }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Eq, Data, Generic)
     deriving anyclass NFData
+
+instance Ord VersionedPkg where
+    compare v1 v2
+        =  vPkgPackage v1 `compare` vPkgPackage v2
+        <> vPkgVersion v1 `compare` vPkgVersion v2
+        <> case (v1,v2) of
+            (VPkgLT _ _, VPkgLT _ _) -> EQ
+            (VPkgLT _ _, _) -> LT
+            (_, VPkgLT _ _) -> GT
+            (VPkgLE _ _, VPkgLE _ _) -> EQ
+            (VPkgLE _ _, _) -> LT
+            (_, VPkgLE _ _) -> GT
+            (VPkgGT _ _, VPkgGT _ _) -> EQ
+            (VPkgGT _ _, _) -> LT
+            (_, VPkgGT _ _) -> GT
+            (VPkgGE _ _, VPkgGE _ _) -> EQ
+            (VPkgGE _ _, _) -> LT
+            (_, VPkgGE _ _) -> GT
+            (VPkgEq _ _, VPkgEq _ _) -> EQ
+            (VPkgEq _ _, _) -> LT
+            (_, VPkgEq _ _) -> GT
+            (VPkgEqIgnoreRev _ _, VPkgEqIgnoreRev _ _) -> EQ
+            (VPkgEqIgnoreRev _ _, _) -> LT
+            (_, VPkgEqIgnoreRev _ _) -> GT
+            (VPkgEqWildcard _ _, VPkgEqWildcard _ _) -> EQ
+
 
 instance Printable VersionedPkg where
     toString (VPkgLT p v) = defVersionedPkgStr "<" p v
