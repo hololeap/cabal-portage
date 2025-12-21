@@ -39,7 +39,7 @@ import Data.Parsable
 -- | A full USE dependency, involving one or more USE flags
 newtype UseDependency
     = UseDependency { unUseDependency :: NonEmpty UseDep }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Parsable UseDependency st e where
