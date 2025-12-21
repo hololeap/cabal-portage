@@ -12,7 +12,7 @@ input that has caused problems in the past.
 
 module Types.UnitTests (unitTests) where
 
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty (NonEmpty(..), fromList)
 import Data.Typeable
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -278,6 +278,205 @@ unitTests = testGroup "unit tests"
                     :| []
                     )
                 ))
+        ]
+    , testGroup "real-world tests"
+        [ ">=dev-lang/ghc-9.0.2:= \
+          \dev-libs/icu \
+          \dev-haskell/text:=[profile?] \
+          \|| ( ( >=dev-haskell/text-0.9.1.0 <dev-haskell/text-1.3 ) \
+              \( >=dev-haskell/text-2.0 <dev-haskell/text-2.2 ) ) \
+          \>=dev-haskell/cabal-3.4.1.0 \
+          \virtual/pkgconfig \
+          \test? ( >=dev-haskell/hunit-1.2 >=dev-haskell/quickcheck-2.4 \
+              \dev-haskell/random >=dev-haskell/test-framework-0.4 \
+              \>=dev-haskell/test-framework-hunit-0.2 \
+              \>=dev-haskell/test-framework-quickcheck2-0.2 \
+              \dev-haskell/text ) hscolour? ( dev-haskell/hscolour )"
+            `parserTest`
+            DepBlock
+                [ Right (
+                    VersionedDepSpec
+                        Nothing
+                        (VPkgGE
+                            (Package "dev-lang" "ghc")
+                            (Version
+                                (VersionNum $ ('9':|[]):|['0':|[],'2':|[]])
+                                Nothing
+                                []
+                                Nothing))
+                        (Just AnySlotBreakable)
+                        Nothing )
+                , Right (
+                    UnversionedDepSpec
+                        Nothing
+                        (Package "dev-libs" "icu")
+                        Nothing
+                        Nothing )
+                , Right (
+                    UnversionedDepSpec
+                        Nothing
+                        (Package "dev-haskell" "text")
+                        (Just AnySlotBreakable)
+                        (Just (UseDependency (
+                            UseDepMatchIfEnabled "profile" Nothing :| [])) ) )
+                , Left ( OrGroup $ fromList
+                        [ Left ( AndGroup $ fromList
+                            [ Right ( VersionedDepSpec
+                                Nothing
+                                (VPkgGE
+                                    (Package "dev-haskell" "text")
+                                    (Version
+                                        (VersionNum $ fromList <$> fromList ["0","9","1","0"])
+                                        Nothing
+                                        []
+                                        Nothing))
+                                Nothing
+                                Nothing
+                                )
+                            , Right ( VersionedDepSpec
+                                Nothing
+                                (VPkgLT
+                                    (Package "dev-haskell" "text")
+                                    (Version
+                                        (VersionNum $ fromList <$> fromList ["1","3"])
+                                        Nothing
+                                        []
+                                        Nothing))
+                                Nothing
+                                Nothing
+                                )
+                            ] )
+                        , Left ( AndGroup $ fromList
+                            [ Right ( VersionedDepSpec
+                                Nothing
+                                (VPkgGE
+                                    (Package "dev-haskell" "text")
+                                    (Version
+                                        (VersionNum $ fromList <$> fromList ["2","0"])
+                                        Nothing
+                                        []
+                                        Nothing))
+                                Nothing
+                                Nothing
+                                )
+                            , Right ( VersionedDepSpec
+                                Nothing
+                                (VPkgLT
+                                    (Package "dev-haskell" "text")
+                                    (Version
+                                        (VersionNum $ fromList <$> fromList ["2","2"])
+                                        Nothing
+                                        []
+                                        Nothing))
+                                Nothing
+                                Nothing
+                                )
+                            ] )
+                        ]
+                    )
+                , Right (
+                    VersionedDepSpec
+                        Nothing
+                        (VPkgGE
+                            (Package "dev-haskell" "cabal")
+                            (Version
+                                (VersionNum $ fromList <$> fromList ["3","4","1","0"])
+                                Nothing
+                                []
+                                Nothing))
+                        Nothing
+                        Nothing )
+                , Right (
+                    UnversionedDepSpec
+                        Nothing
+                        (Package "virtual" "pkgconfig")
+                        Nothing
+                        Nothing )
+                , Left ( UseGroup ( fromList
+                    [ Right (
+                        VersionedDepSpec
+                            Nothing
+                            (VPkgGE
+                                (Package "dev-haskell" "hunit")
+                                (Version
+                                    (VersionNum $ fromList <$> fromList ["1","2"])
+                                    Nothing
+                                    []
+                                    Nothing))
+                            Nothing
+                            Nothing )
+                    , Right (
+                        VersionedDepSpec
+                            Nothing
+                            (VPkgGE
+                                (Package "dev-haskell" "quickcheck")
+                                (Version
+                                    (VersionNum $ fromList <$> fromList ["2","4"])
+                                    Nothing
+                                    []
+                                    Nothing))
+                            Nothing
+                            Nothing )
+                    , Right (
+                        UnversionedDepSpec
+                            Nothing
+                            (Package "dev-haskell" "random")
+                            Nothing
+                            Nothing )
+                    , Right (
+                        VersionedDepSpec
+                            Nothing
+                            (VPkgGE
+                                (Package "dev-haskell" "test-framework")
+                                (Version
+                                    (VersionNum $ fromList <$> fromList ["0","4"])
+                                    Nothing
+                                    []
+                                    Nothing))
+                            Nothing
+                            Nothing )
+                    , Right (
+                        VersionedDepSpec
+                            Nothing
+                            (VPkgGE
+                                (Package "dev-haskell" "test-framework-hunit")
+                                (Version
+                                    (VersionNum $ fromList <$> fromList ["0","2"])
+                                    Nothing
+                                    []
+                                    Nothing))
+                            Nothing
+                            Nothing )
+                    , Right (
+                        VersionedDepSpec
+                            Nothing
+                            (VPkgGE
+                                (Package "dev-haskell" "test-framework-quickcheck2")
+                                (Version
+                                    (VersionNum $ fromList <$> fromList ["0","2"])
+                                    Nothing
+                                    []
+                                    Nothing))
+                            Nothing
+                            Nothing )
+                    , Right (
+                        UnversionedDepSpec
+                            Nothing
+                            (Package "dev-haskell" "text")
+                            Nothing
+                            Nothing )
+                    ] )
+                    "test" )
+                , Left ( UseGroup ( fromList
+                    [ Right (
+                        UnversionedDepSpec
+                            Nothing
+                            (Package "dev-haskell" "hscolour")
+                            Nothing
+                            Nothing )
+                    ] )
+                    "hscolour" )
+                ]
         ]
     ]
 
