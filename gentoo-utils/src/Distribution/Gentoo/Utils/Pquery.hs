@@ -82,7 +82,7 @@ getPqueryDump
     :: forall a.
        [String] -- ^ Extra arguments to pass to @pquery@
     -> (PkgDeps -> a) -- ^ conversion function (can be @'id' :: PkgDeps -> PkgDeps@))
-    -> ExeEnv (Validation (NonEmpty String) [a])
+    -> ExeEnv (Validation (NonEmpty (Maybe String)) [a])
 getPqueryDump extraArgs convFunc =
     parseOutLines <$> runPquery linesOutput (args ++ extraArgs)
   where
@@ -99,10 +99,10 @@ getPqueryDump extraArgs convFunc =
 
     parseOutLines
         :: (StdOut [ByteString], StdErr [ByteString])
-        -> Validation (NonEmpty String) [a]
+        -> Validation (NonEmpty (Maybe String)) [a]
     parseOutLines (StdOut outLines, _) = traverse parseLine outLines
 
-    parseLine :: ByteString -> Validation (NonEmpty String) a
+    parseLine :: ByteString -> Validation (NonEmpty (Maybe String)) a
     parseLine = either failure pure . fmap convFunc . runParsable
 
 -- | Run @pquery@ with the given arguments. Streams @stderr@ transparently to
