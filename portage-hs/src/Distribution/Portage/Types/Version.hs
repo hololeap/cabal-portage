@@ -49,7 +49,7 @@ data Version = Version
     , getVersionSuffixes :: [(VersionSuffix, Maybe VersionSuffixNum)]
     , getVersionRevision :: Maybe VersionRevision
     }
-    deriving stock (Show, Eq, Data, Generic)
+    deriving stock (Show, Read, Eq, Data, Generic)
     deriving anyclass NFData
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
@@ -91,7 +91,7 @@ instance Parsable Version st e where
 
 newtype VersionNum = VersionNum
     { unwrapVersionNum :: NonEmpty (NonEmpty Char) }
-    deriving stock (Show, Eq, Data, Generic)
+    deriving stock (Show, Read, Eq, Data, Generic)
     deriving anyclass NFData
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
@@ -134,7 +134,7 @@ instance Parsable VersionNum st e where
 
 newtype VersionLetter = VersionLetter
     { unwrapVersionLetter :: Char }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Printable VersionLetter where
@@ -150,7 +150,7 @@ data VersionSuffix
     | SuffixPre
     | SuffixRC
     | SuffixP
-    deriving stock (Show, Eq, Ord, Data, Generic, Bounded, Enum)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic, Bounded, Enum)
     deriving anyclass NFData
 
 instance Printable VersionSuffix where
@@ -174,7 +174,7 @@ instance Parsable VersionSuffix st e where
 
 newtype VersionSuffixNum = VersionSuffixNum
     { unwrapVersionSuffixNum :: NonEmpty Char }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Printable VersionSuffixNum where
@@ -186,7 +186,7 @@ instance Parsable VersionSuffixNum st e where
 
 newtype VersionRevision = VersionRevision
     { unwrapVersionRevision :: NonEmpty Char }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Printable VersionRevision where
@@ -209,7 +209,7 @@ instance Parsable VersionRevision st e where
 --   <https://projects.gentoo.org/pms/8/pms.html#x1-180003.1.2>
 newtype FauxVersion = FauxVersion
     { unwrapFauxVersion :: Version }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving newtype Printable
 
 instance Parsable FauxVersion st e where
@@ -221,7 +221,7 @@ instance Parsable FauxVersion st e where
 --   Category.
 newtype FauxVersionNum = FauxVersionNum
     { unwrapFauxVersionNum :: VersionNum }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving newtype Printable
 
 instance Parsable FauxVersionNum st e where

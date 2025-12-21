@@ -65,7 +65,7 @@ data DepGroup
         { depGroupChildren :: NonEmpty (Either DepGroup DepSpec)
         , depGroupUseFlag :: UseFlag
         }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Parsable DepGroup st String where
@@ -109,7 +109,7 @@ instance Printable DepGroup where
 --   up the entirity of dependency class strings, such as what is defined as
 --   @RDEPEND@.
 newtype DepBlock = DepBlock { unDepBlock :: [Either DepGroup DepSpec] }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance IsList DepBlock where
@@ -149,7 +149,7 @@ data DepVar
     | BDEPEND
     | PDEPEND
     | IDEPEND
-    deriving stock (Show, Eq, Ord, Bounded, Enum, Generic)
+    deriving stock (Show, Read, Eq, Ord, Bounded, Enum, Generic)
     deriving anyclass NFData
 
 instance Parsable DepVar st String where

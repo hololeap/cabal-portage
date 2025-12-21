@@ -73,7 +73,7 @@ data UseDep
     | UseDepMatchIfEnabled UseFlag (Maybe UseDepDefault)
     | UseDepMatchIfDisabled UseFlag (Maybe UseDepDefault)
     | UseDepDisabled UseFlag (Maybe UseDepDefault)
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Parsable UseDep st e where
@@ -117,7 +117,7 @@ instance Printable UseDep where
 data UseDepDefault
     = UseDefaultEnabled
     | UseDefaultDisabled
-    deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Bounded, Enum, Data, Generic)
     deriving anyclass NFData
 
 instance Parsable UseDepDefault st e where
@@ -134,7 +134,7 @@ instance Printable UseDepDefault where
 
 newtype UseFlag = UseFlag
     { unUseFlag :: String }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
     deriving anyclass NFData
 

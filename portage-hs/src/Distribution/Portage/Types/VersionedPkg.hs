@@ -53,7 +53,7 @@ data VersionedPkg
     --
     --   e.g. @=app-misc/blah-1.2*@
     | VPkgEqWildcard { vPkgPackage :: Package, vPkgVersion :: Version }
-    deriving stock (Show, Eq, Data, Generic)
+    deriving stock (Show, Read, Eq, Data, Generic)
     deriving anyclass NFData
 
 instance Ord VersionedPkg where

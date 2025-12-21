@@ -39,7 +39,7 @@ data Package = Package
     { getCategory   :: Category
     , getPkgName    :: PkgName
     }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Printable Package where
@@ -58,7 +58,7 @@ instance Parsable Package st String where
 
 newtype Category = Category
     { unwrapCategory :: String }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
     deriving anyclass NFData
 
@@ -80,7 +80,7 @@ instance Parsable Category st e where
 
 newtype PkgName = PkgName
     { unwrapPkgName :: String }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
     deriving anyclass NFData
 

@@ -51,7 +51,7 @@ data DepSpec =
     , depSpecSlot :: Maybe Slot
     , depSpecUseDependency :: Maybe UseDependency
     }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Parsable DepSpec st String where
@@ -86,7 +86,7 @@ instance Printable DepSpec where
 data Block
     = WeakBlock
     | StrongBlock
-    deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Bounded, Enum, Data, Generic)
     deriving anyclass NFData
 
 instance Parsable Block st e where
@@ -113,7 +113,7 @@ data Slot
         { unwrapSlot :: String
         , getSubSlot :: Maybe SubSlot
         }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving anyclass NFData
 
 instance Printable Slot where
@@ -142,7 +142,7 @@ instance Parsable Slot st e where
         ]
 
 newtype SubSlot = SubSlot { unwrapSubSlot :: String }
-    deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving stock (Show, Read, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
     deriving anyclass NFData
 
