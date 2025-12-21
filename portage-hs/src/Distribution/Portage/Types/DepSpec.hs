@@ -5,6 +5,7 @@ Full dependency specification as defined in the Gentoo Package Manager
 Specification.
 -}
 
+{-# Language DeriveAnyClass #-}
 {-# Language DeriveDataTypeable #-}
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
@@ -26,6 +27,7 @@ module Distribution.Portage.Types.DepSpec
     , Repository(..)
     ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 
@@ -50,6 +52,7 @@ data DepSpec =
     , depSpecUseDependency :: Maybe UseDependency
     }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Parsable DepSpec st String where
     parserName = "portage full dependency spec"
@@ -84,6 +87,7 @@ data Block
     = WeakBlock
     | StrongBlock
     deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
+    deriving anyclass NFData
 
 instance Parsable Block st e where
     parserName = "portage blocker operator"
@@ -110,6 +114,7 @@ data Slot
         , getSubSlot :: Maybe SubSlot
         }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Printable Slot where
     toString AnySlot = "*"
@@ -139,6 +144,7 @@ instance Parsable Slot st e where
 newtype SubSlot = SubSlot { unwrapSubSlot :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass NFData
 
 instance Parsable SubSlot st e where
     parserName = "portage sub-slot"

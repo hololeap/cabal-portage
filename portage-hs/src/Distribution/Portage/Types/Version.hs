@@ -5,6 +5,7 @@ Types for package versions as defined in the Gentoo Package Manager
 Specification.
 -}
 
+{-# Language DeriveAnyClass #-}
 {-# Language DeriveDataTypeable #-}
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
@@ -30,6 +31,7 @@ module Distribution.Portage.Types.Version
     , FauxVersionNum(..)
     ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import Data.Function (on)
 import qualified Data.List as L
@@ -46,7 +48,9 @@ data Version = Version
     , getVersionLetter :: Maybe VersionLetter
     , getVersionSuffixes :: [(VersionSuffix, Maybe VersionSuffixNum)]
     , getVersionRevision :: Maybe VersionRevision
-    } deriving stock (Show, Eq, Data, Generic)
+    }
+    deriving stock (Show, Eq, Data, Generic)
+    deriving anyclass NFData
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord Version where
@@ -88,6 +92,7 @@ instance Parsable Version st e where
 newtype VersionNum = VersionNum
     { unwrapVersionNum :: NonEmpty (NonEmpty Char) }
     deriving stock (Show, Eq, Data, Generic)
+    deriving anyclass NFData
 
 -- See section 3.3 "Version Comparison" of the Package Manager Specification
 instance Ord VersionNum where
@@ -130,6 +135,7 @@ instance Parsable VersionNum st e where
 newtype VersionLetter = VersionLetter
     { unwrapVersionLetter :: Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Printable VersionLetter where
     toString (VersionLetter l) = [l]
@@ -145,6 +151,7 @@ data VersionSuffix
     | SuffixRC
     | SuffixP
     deriving stock (Show, Eq, Ord, Data, Generic, Bounded, Enum)
+    deriving anyclass NFData
 
 instance Printable VersionSuffix where
     toString = \case
@@ -168,6 +175,7 @@ instance Parsable VersionSuffix st e where
 newtype VersionSuffixNum = VersionSuffixNum
     { unwrapVersionSuffixNum :: NonEmpty Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Printable VersionSuffixNum where
     toString = NE.toList . unwrapVersionSuffixNum
@@ -179,6 +187,7 @@ instance Parsable VersionSuffixNum st e where
 newtype VersionRevision = VersionRevision
     { unwrapVersionRevision :: NonEmpty Char }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Printable VersionRevision where
     toString (VersionRevision r) = "r" ++ NE.toList r

@@ -8,6 +8,7 @@ Also, blocks of 'DepSpec's or 'DepGroup's that make up the entirity of
 dependency class strings, such as what is defined as @RDEPEND@.
 -}
 
+{-# Language DeriveAnyClass #-}
 {-# Language DeriveDataTypeable #-}
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
@@ -25,6 +26,7 @@ module Distribution.Portage.Types.DepGroup
     , DepVar(..)
     ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty(..))
@@ -64,6 +66,7 @@ data DepGroup
         , depGroupUseFlag :: UseFlag
         }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Parsable DepGroup st String where
     parserName = "portage dependency group"
@@ -107,6 +110,7 @@ instance Printable DepGroup where
 --   @RDEPEND@.
 newtype DepBlock = DepBlock { unDepBlock :: [Either DepGroup DepSpec] }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance IsList DepBlock where
     type instance Item DepBlock = Either DepGroup DepSpec
@@ -145,7 +149,8 @@ data DepVar
     | BDEPEND
     | PDEPEND
     | IDEPEND
-    deriving (Show, Eq, Ord, Bounded, Enum, Generic)
+    deriving stock (Show, Eq, Ord, Bounded, Enum, Generic)
+    deriving anyclass NFData
 
 instance Parsable DepVar st String where
     parserName = "portage dependency specification variable"

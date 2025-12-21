@@ -5,6 +5,7 @@ Types for USE flag dependencies as defined in the Gentoo Package Manager
 Specification.
 -}
 
+{-# Language DeriveAnyClass #-}
 {-# Language DeriveDataTypeable #-}
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
@@ -25,6 +26,7 @@ module Distribution.Portage.Types.UseDep
     , UseFlag(..)
     ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty)
@@ -38,6 +40,7 @@ import Data.Parsable
 newtype UseDependency
     = UseDependency { unUseDependency :: NonEmpty UseDep }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Parsable UseDependency st e where
     parserName = "portage USE dependency"
@@ -71,6 +74,7 @@ data UseDep
     | UseDepMatchIfDisabled UseFlag (Maybe UseDepDefault)
     | UseDepDisabled UseFlag (Maybe UseDepDefault)
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Parsable UseDep st e where
     parserName = "portage USE dependency piece"
@@ -114,6 +118,7 @@ data UseDepDefault
     = UseDefaultEnabled
     | UseDefaultDisabled
     deriving stock (Show, Eq, Ord, Bounded, Enum, Data, Generic)
+    deriving anyclass NFData
 
 instance Parsable UseDepDefault st e where
     parserName = "portage USE dependency default"
@@ -131,6 +136,7 @@ newtype UseFlag = UseFlag
     { unUseFlag :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass NFData
 
 instance Parsable UseFlag st e where
     parserName = "portage USE flag"

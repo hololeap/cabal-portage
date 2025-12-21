@@ -4,6 +4,7 @@ Module      : Distribution.Portage.Types.Misc
 Misc. types in the Gentoo Package Manager Specification
 -}
 
+{-# Language DeriveAnyClass #-}
 {-# Language DeriveDataTypeable #-}
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
@@ -17,6 +18,7 @@ module Distribution.Portage.Types.Misc
       Repository(..)
     ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 
@@ -27,6 +29,7 @@ import Distribution.Portage.Types.Package
 newtype Repository = Repository { unwrapRepository :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass NFData
 
 instance Parsable Repository st String where
     parserName = "portage repository"

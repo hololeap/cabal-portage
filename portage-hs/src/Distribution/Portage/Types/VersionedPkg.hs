@@ -5,6 +5,7 @@ Types for Portage packages with specific version constraints
 -}
 
 {-# Language DeriveDataTypeable #-}
+{-# Language DeriveAnyClass #-}
 {-# Language DeriveGeneric #-}
 {-# Language DerivingVia #-}
 {-# Language EmptyCase #-}
@@ -23,6 +24,7 @@ module Distribution.Portage.Types.VersionedPkg
     , matchVersionedPackage
     ) where
 
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import qualified Data.List.NonEmpty as NE
 import GHC.Generics (Generic)
@@ -52,6 +54,7 @@ data VersionedPkg
     --   e.g. @=app-misc/blah-1.2*@
     | VPkgEqWildcard { vPkgPackage :: Package, vPkgVersion :: Version }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Printable VersionedPkg where
     toString (VPkgLT p v) = defVersionedPkgStr "<" p v

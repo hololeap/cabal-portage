@@ -6,6 +6,7 @@ Types for basic Gentoo qualified package atoms (category/name)
 
 {-# Language DeriveDataTypeable #-}
 {-# Language DeriveGeneric #-}
+{-# Language DeriveAnyClass #-}
 {-# Language DerivingVia #-}
 {-# Language FlexibleContexts #-}
 {-# Language FlexibleInstances #-}
@@ -26,6 +27,7 @@ module Distribution.Portage.Types.Package
     ) where
 
 import Control.Applicative (Alternative)
+import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 
@@ -38,6 +40,7 @@ data Package = Package
     , getPkgName    :: PkgName
     }
     deriving stock (Show, Eq, Ord, Data, Generic)
+    deriving anyclass NFData
 
 instance Printable Package where
     toString (Package c n)
@@ -57,6 +60,7 @@ newtype Category = Category
     { unwrapCategory :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass NFData
 
 instance Parsable Category st e where
     parserName = "portage category"
@@ -78,6 +82,7 @@ newtype PkgName = PkgName
     { unwrapPkgName :: String }
     deriving stock (Show, Eq, Ord, Data, Generic)
     deriving newtype (IsString, Printable)
+    deriving anyclass NFData
 
 instance Parsable PkgName st String where
     parserName = "portage package name"
