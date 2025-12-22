@@ -6,11 +6,9 @@ module Distribution.Gentoo.Utils.Pquery
     ( PkgDeps(..)
     , getPqueryDump
     , runPquery
-    , module Control.Monad.Reader
     , module Validation
     ) where
 
-import Control.Monad.Reader
 import Data.ByteString (ByteString)
 import Data.List.NonEmpty (NonEmpty)
 import Validation
