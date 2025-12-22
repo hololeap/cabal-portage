@@ -3,7 +3,7 @@ name:               parsable-test
 version:            0.1.0.0
 synopsis:           Test functions for the parsable package
 
-tested-with:        GHC == { 9.4.8, 9.6.7, 9.8.4, 9.10.1, 9.12.2 }
+tested-with:        GHC == { 9.4.8, 9.6.7, 9.8.4, 9.10.1, 9.12.2, 9.14.1 }
 
 description:
     Provides QuickCheck generators and HUnit assertions for testing
@@ -55,7 +55,7 @@ library
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        , base >=4.17 && <4.22
+        , base >=4.17 && <4.23
         , bytestring >=0.11 && <0.13
         , parsable >=0.1 && <0.2
         , mtl >=2.2.2 && <2.4

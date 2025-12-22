@@ -3,7 +3,7 @@ name:               portage-hs
 version:            0.1.0.0
 synopsis:           Data structures and functions for interacting with the Portage package manager
 
-tested-with:        GHC == { 9.4.8, 9.6.7, 9.8.4, 9.10.1, 9.12.2 }
+tested-with:        GHC == { 9.4.8, 9.6.7, 9.8.4, 9.10.1, 9.12.2, 9.14.1 }
 
 description:
     Currently, this includes:
@@ -74,8 +74,8 @@ library
     default-language: Haskell2010
 
     build-depends:
-        , base >=4.13 && <4.22
-        , containers <0.8
+        , base >=4.13 && <4.23
+        , containers <0.9
         , deepseq >=1.4.8.0 && <1.6
         , directory <1.4
         , filepath <1.6
@@ -117,10 +117,10 @@ test-suite portage-hs-test
         , parsable >=0.1 && <0.2
         , parsable-test >=0.1 && <0.2
         , portage-hs >=0.1 && <0.2
-        , base >=4.17 && <4.22
+        , base >=4.17 && <4.23
         , bytestring >=0.11 && <0.13
         , conduit <1.4
-        , containers <0.8
+        , containers <0.9
         , directory <1.4
         , filepath <1.6
         , flatparse
